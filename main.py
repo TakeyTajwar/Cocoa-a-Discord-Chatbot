@@ -24,6 +24,8 @@ emojis = {
 	'flushed': "<a:thats_so_flushed:806909343916097557>",
 	}
 
+probability_lit = 2
+probability_channel_rank = 2
 
 @client.event
 async def on_ready():
@@ -67,9 +69,12 @@ async def give_equal_channel_values(value=2):
 		if(m.startswith('c_')):
 			db['chnScore_' + str(db[m])] = value
 
-
+sorting_channels = False
 async def sort_channels(value=False):
+	global sorting_channels
 	print("Soring Channels...")
+	sorting_channels = True
+
 	if(not(value)):
 		value = client.get_channel(826062486766616617).position + 1
 	channels = dict()
@@ -87,6 +92,7 @@ async def sort_channels(value=False):
 		if(chn):
 			await chn.edit(position=value)
 	print("Done.")
+	sorting_channels = False
 
 
 async def words_in_string(word_list, a_string):
@@ -94,6 +100,10 @@ async def words_in_string(word_list, a_string):
 		if(not(w in a_string)):
 			return(False)
 	return(True)
+
+async def get_time():
+	return time.gmtime().tm_hour * 60 * 60 + time.gmtime(
+		).tm_min * 60 + time.gmtime().tm_sec
 
 async def whos_mentioned(msg):
 	msg = msg.replace('!', '').replace("'s", '').lower().split()
@@ -155,30 +165,41 @@ async def remove_member_data(member_id, member_name = None):
 async def on_message(message):
 	global last_time
 	global TruthAsked
+	global sorting_channels
+	global probability_lit, probability_channel_rank
 	
 	# if the sender is the bot herself
 	if (message.author == client.user):
 		return
 
 	else:
-		print(f"NM: {message.content}") # read the message
-
 		msg = message.content
 		msg_len = len(msg)
+		msg_auth = message.author
 		chn_id = message.channel.id
+		time_now = await get_time()
+
+		print(f"{time_now}: {msg}") # read the message
 		
-		time_now = time.gmtime().tm_hour * 60 * 60 + time.gmtime(
-		).tm_min * 60 + time.gmtime().tm_sec
-		if (time_now > last_time + 2 * 60):
-			if(message.channel.category.id == 819890501415075880): # personal lairs
-					if(randint(1,3)>1):
-						if(not(chn_id in (831345726394990593, 826062486766616617))):
-							db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
-							sort_channels()
-			elif (randint(1, 10) == 2):
-				await post_4chan_lit(0)
+		if(not(sorting_channels)):
+			if (time_now > last_time + 2 * 60):
+				if(message.channel.category):
+					if(message.channel.category.id == 819890501415075880): # personal lairs
+							if(randint(1, 5) > probability_channel_rank):
+								if(not(chn_id in (831345726394990593, 826062486766616617))):
+									db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
+									probability_channel_rank
+									await sort_channels()
+							else:
+								probability_channel_rank += 1
+
+					elif (randint(1, 15) > probability_lit):
+						await post_4chan_lit(0)
+						probability_lit = 2
+					else:
+						probability_lit += 1
 				
-		elif (message.channel.id == 825530904939069440):
+		if(message.channel.id == 825530904939069440):
 			LitMsg = message.content.lower()
 			for c in ["'", " ", ".", "please", ","]:
 				LitMsg = LitMsg.replace(c, "")
