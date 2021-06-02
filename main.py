@@ -93,6 +93,7 @@ async def sort_channels(value=False):
 			await chn.edit(position=value)
 	print("Done.")
 	sorting_channels = False
+	return(True)
 
 
 async def words_in_string(word_list, a_string):
@@ -112,6 +113,10 @@ async def whos_mentioned(msg):
 		if(w.startswith('<@') and w.endswith('>')):
 			return(int(w.replace('<@', '').replace('>', '')))
 	return(False)
+
+
+
+
 
 
 # when a new member joins the server
@@ -140,6 +145,10 @@ async def on_member_join(member):
 		db["c_" + str(member.id)] = new_channel.id
 
 
+
+
+
+
 # when a member leaves
 @client.event
 async def on_member_remove(member):
@@ -161,6 +170,11 @@ async def remove_member_data(member_id, member_name = None):
 	del db["favmusic_" + str(member_id)]
 
 
+
+
+
+
+# new message
 @client.event
 async def on_message(message):
 	global last_time
@@ -180,20 +194,30 @@ async def on_message(message):
 		time_now = await get_time()
 
 		print(f"{time_now}: {msg}") # read the message
+
+		if(chn_id==820840150044770335): #bot-settings
+			if(msg=='++sort_per_chan'):
+				if(not(sorting_channels)):
+					if(await sort_channels()):
+						await message.reply("Sorting personal channels done.")
+				else:
+					await message.reply("Already sorting personal channels.")
 		
 		if(not(sorting_channels)):
 			if (time_now > last_time + 2 * 60):
 				if(message.channel.category):
 					if(message.channel.category.id == 819890501415075880): # personal lairs
-							if(randint(1, 5) > probability_channel_rank):
+							if(probability_channel_rank > randint(0, 5)):
 								if(not(chn_id in (831345726394990593, 826062486766616617))):
 									db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
-									probability_channel_rank
-									await sort_channels()
+									print("personal channel scored up")
+									if(2 > randint(1, 2)):
+										await sort_channels()
+										probability_channel_rank = 2
 							else:
 								probability_channel_rank += 1
 
-					elif (randint(1, 15) > probability_lit):
+					elif (probability_lit > randint(1, 15)):
 						await post_4chan_lit(0)
 						probability_lit = 2
 					else:
