@@ -60,6 +60,9 @@ async def print_db():
 	print("-"*40)
 
 
+
+
+
 async def give_equal_channel_values(value=2):
 	for cs in db.prefix('chnScore_'):
 		if(cs.startswith('chnScore_')):
@@ -68,6 +71,8 @@ async def give_equal_channel_values(value=2):
 	for m in db.prefix('c_'):
 		if(m.startswith('c_')):
 			db['chnScore_' + str(db[m])] = value
+
+
 
 sorting_channels = False
 async def sort_channels(value=False):
@@ -81,10 +86,11 @@ async def sort_channels(value=False):
 
 	for chn_s in db.prefix('chnScore_'):
 		if(chn_s.startswith('chnScore_')):
-			x = int(chn_s.split('_')[-1])
-			y = db[chn_s]
-			new_update = {x: y}
-			channels.update(new_update)
+			if(not(chn_s.endswith('826062486766616617'))):
+				x = int(chn_s.split('_')[-1])
+				y = db[chn_s]
+				new_update = {x: y}
+				channels.update(new_update)
 	channels = sorted(channels.items(), key=lambda x: x[1])
 	for channel in channels:
 		id=channel[0]
@@ -94,6 +100,7 @@ async def sort_channels(value=False):
 	print("Done.")
 	sorting_channels = False
 	return(True)
+
 
 
 async def words_in_string(word_list, a_string):
@@ -143,6 +150,7 @@ async def on_member_join(member):
 		                                  manage_channels=True,
 		                                  manage_messages=True)
 		db["c_" + str(member.id)] = new_channel.id
+		db["chnScore_"+str(new_channel.id)] = 2
 
 
 
@@ -207,7 +215,7 @@ async def on_message(message):
 			if (time_now > last_time + 2 * 60):
 				if(message.channel.category):
 					if(message.channel.category.id == 819890501415075880): # personal lairs
-							if(probability_channel_rank > randint(0, 5)):
+							if(probability_channel_rank > randint(1, 4)):
 								if(not(chn_id in (831345726394990593, 826062486766616617))):
 									db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
 									print("personal channel scored up")
