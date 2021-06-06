@@ -10,8 +10,8 @@ import time
 from keep_alive import keep_alive
 
 intents = discord.Intents.default()
+intents.presences = True
 intents.members = True
-
 client = commands.Bot(command_prefix='/DD', intents=intents)
 
 
@@ -23,6 +23,8 @@ print(last_time)
 emojis = {
 	'flushed': "<a:thats_so_flushed:806909343916097557>",
 	}
+
+
 
 probability_lit = 2
 probability_channel_rank = 2
@@ -50,6 +52,7 @@ async def on_ready():
 
 
 async def startup_functions():
+	await setup_guild()
 	await print_db()
 	# await sort_channels()
 
@@ -59,6 +62,16 @@ async def print_db():
 		print(f"** {cu}: {db[cu]}")
 	print("-"*40)
 
+
+
+
+
+
+async def setup_guild():
+	global guild, server_booster_role
+	guild = client.get_guild(806413017440845845)
+
+	server_booster_role = discord.utils.get(guild.roles, id=830465050174816336)
 
 
 
@@ -198,8 +211,11 @@ async def on_message(message):
 		msg = message.content
 		msg_len = len(msg)
 		msg_auth = message.author
+		msg_auth_roles = msg_auth.roles
 		chn_id = message.channel.id
 		time_now = await get_time()
+
+		# print(msg_auth_roles)
 
 		print(f"{time_now}: {msg}") # read the message
 
@@ -231,7 +247,7 @@ async def on_message(message):
 					else:
 						probability_lit += 1
 				
-		if(message.channel.id == 825530904939069440):
+		if(message.channel.id == 825530904939069440): #literature
 			LitMsg = message.content.lower()
 			for c in ["'", " ", ".", "please", ","]:
 				LitMsg = LitMsg.replace(c, "")
@@ -246,7 +262,7 @@ async def on_message(message):
 		if("@everyone" in msg):
 			await message.delete()
 		
-		elif(message.channel.id == 831345726394990593):
+		elif(message.channel.id == 831345726394990593): #channel-finder
 			if(msg.lower()=="all"):
 				text = []
 				for c_u in db.prefix('c_'):
@@ -262,7 +278,14 @@ async def on_message(message):
 			else:
 				print("NO USE: " + msg)
 				await message.delete()
-		elif("<@823554116356669521>" in msg or "<@!823554116356669521>" in msg):
+		
+		elif(chn_id == 850962046527078441): #boosters-only
+			if(not(server_booster_role in msg_auth_roles)):
+				await message.delete()
+				print("deleting message;")
+				return;
+
+		if("<@823554116356669521>" in msg or "<@!823554116356669521>" in msg):
 			print("DDL is mentioned;")
 			if("truth or dare" in msg.lower().replace('?', '')):
 				await message.reply("Truth.")
@@ -274,7 +297,7 @@ async def on_message(message):
 				else:
 					await message.reply("I don't know.")
 			
-			if(message.channel.id == 806413018056491031):
+			if(message.channel.id == 806413018056491031): #music
 				print("music channel")
 				if(await words_in_string(['track', 'my', 'favourite', 'spotify'], msg.lower())):
 					await message.channel.send(await setup_favourite_music(message.author.id, msg.split()[-1]))
