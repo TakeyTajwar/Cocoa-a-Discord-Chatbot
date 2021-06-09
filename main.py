@@ -29,6 +29,15 @@ emojis = {
 probability_lit = 2
 probability_channel_rank = 2
 
+
+activity_general = 0
+activity_interests = 0
+activity_misc = 0
+activity_cool_ideas = 0
+activity_personal_channels = 0
+
+
+
 @client.event
 async def on_ready():
 	global personal_chan
@@ -202,6 +211,7 @@ async def on_message(message):
 	global TruthAsked
 	global sorting_channels
 	global probability_lit, probability_channel_rank
+	global activity_general, activity_interests, activity_misc, activity_cool_ideas, activity_personal_channels
 	
 	# if the sender is the bot herself
 	if (message.author == client.user):
@@ -213,11 +223,34 @@ async def on_message(message):
 		msg_auth = message.author
 		msg_auth_roles = msg_auth.roles
 		chn_id = message.channel.id
+		chn_cat_id = message.channel.category.id
+
 		time_now = await get_time()
 
 		# print(msg_auth_roles)
 
 		print(f"{time_now}: {msg}") # read the message
+
+		if(time_now > last_time + 5 * 60):
+			activity_general = 0
+			activity_interests = 0
+			activity_misc = 0
+			activity_cool_ideas = 0
+			activity_personal_channels = 0
+		
+		if(chn_cat_id==806413018056491028):
+			activity_general += 1
+		elif(chn_cat_id==825523271004192799):
+			activity_interests += 1
+		elif(chn_cat_id==806423158344384512):
+			activity_misc += 1
+		elif(chn_cat_id==810881959273431092):
+			activity_cool_ideas += 1
+		elif(chn_cat_id==819890501415075880):
+			activity_personal_channels += 1
+
+		activity_summed = sum(activity_general, activity_interests, activity_misc, activity_cool_ideas, activity_personal_channels)
+
 
 		if(chn_id==820840150044770335): #bot-settings
 			if(msg=='++sort_per_chan'):
@@ -228,20 +261,20 @@ async def on_message(message):
 					await message.reply("Already sorting personal channels.")
 		
 		if(not(sorting_channels)):
-			if (time_now > last_time + 2 * 60):
+			if (time_now > last_time + 1 * 60):
 				if(message.channel.category):
-					if(message.channel.category.id == 819890501415075880): # personal lairs
-							if(probability_channel_rank > randint(1, 4)):
+					if(chn_cat_id == 819890501415075880): # personal lairs
+							if(probability_channel_rank > randint(1, 4 + activity_personal_channels)):
 								if(not(chn_id in (831345726394990593, 826062486766616617))):
 									db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
 									print("personal channel scored up")
-									if(2 > randint(1, 2)):
+									if(2 > randint(1, 3)):
 										await sort_channels()
 										probability_channel_rank = 2
 							else:
 								probability_channel_rank += 1
 
-					elif (probability_lit > randint(1, 15)):
+					elif (probability_lit > randint(1, 50 + activity_summed)):
 						await post_4chan_lit(0)
 						probability_lit = 2
 					else:
