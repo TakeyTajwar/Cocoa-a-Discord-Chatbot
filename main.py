@@ -223,7 +223,10 @@ async def on_message(message):
 		msg_auth = message.author
 		msg_auth_roles = msg_auth.roles
 		chn_id = message.channel.id
-		chn_cat_id = message.channel.category.id
+		if(message.channel.category):
+			chn_cat_id = message.channel.category.id
+		else:
+			chn_cat_id = None
 
 		time_now = await get_time()
 
@@ -231,7 +234,7 @@ async def on_message(message):
 
 		print(f"{time_now}: {msg}") # read the message
 
-		if(time_now > last_time + 5 * 60):
+		if(time_now > last_time + 15 * 60):
 			activity_general = 0
 			activity_interests = 0
 			activity_misc = 0
@@ -249,7 +252,7 @@ async def on_message(message):
 		elif(chn_cat_id==819890501415075880):
 			activity_personal_channels += 1
 
-		activity_summed = sum(activity_general, activity_interests, activity_misc, activity_cool_ideas, activity_personal_channels)
+		activity_summed = activity_general + activity_interests + activity_misc + activity_cool_ideas + activity_personal_channels
 
 
 		if(chn_id==820840150044770335): #bot-settings
@@ -264,11 +267,12 @@ async def on_message(message):
 			if (time_now > last_time + 1 * 60):
 				if(message.channel.category):
 					if(chn_cat_id == 819890501415075880): # personal lairs
-							if(probability_channel_rank > randint(1, 4 + activity_personal_channels)):
+							if(probability_channel_rank > randint(1, 2 + activity_personal_channels)):
 								if(not(chn_id in (831345726394990593, 826062486766616617))):
 									db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
+									await channel_finder.message(f"<#{chn_id}> scored up")
 									print("personal channel scored up")
-									if(2 > randint(1, 3)):
+									if(2 > randint(1, 5)):
 										await sort_channels()
 										probability_channel_rank = 2
 							else:
@@ -300,14 +304,17 @@ async def on_message(message):
 				text = []
 				for c_u in db.prefix('c_'):
 					if(not(c_u.startswith('chnScore_'))):
-						text.append(f":stars:`{str(client.get_user(int(c_u[2:])))[:-5]}`: <#{db[c_u]}>\n")
+						text_ = ""
+						text_ = text_ + (f":stars:`{str(client.get_user(int(c_u[2:])))[:-5]}`: <#{db[c_u]}>")
+						text_ = text_ + (f" ({db['chnScore_'+str(db['c_'+str(c_u[2:])])]})\n")
+						text.append(text_)
 				text = sorted(text)
 				text = ''.join(text)
 				# text.replace('_', '\_').replace('**', '\**').replace('*', '\*')
 				await channel_finder.send(text)
 			elif(msg.startswith('<@') and msg.endswith('>')):
 				m = msg.replace('!', '')
-				await channel_finder.send(f"<#{db['c_'+(m[2:-1])]}>")
+				await channel_finder.send(f"<#{db['c_'+(m[2:-1])]}>" + '\n' + f"Score: {db['chnScore_'+str(db['c_'+(m[2:-1])])]}")
 			else:
 				print("NO USE: " + msg)
 				await message.delete()
