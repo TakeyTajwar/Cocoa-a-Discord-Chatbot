@@ -270,7 +270,7 @@ async def on_message(message):
 							if(probability_channel_rank > randint(1, 2 + activity_personal_channels)):
 								if(not(chn_id in (831345726394990593, 826062486766616617))):
 									db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
-									await channel_finder.message(f"<#{chn_id}> scored up")
+									await channel_finder.send(f"<#{chn_id}> scored up")
 									print("personal channel scored up")
 									if(2 > randint(1, 5)):
 										await sort_channels()
