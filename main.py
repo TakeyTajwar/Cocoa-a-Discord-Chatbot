@@ -22,6 +22,7 @@ print(last_time)
 
 emojis = {
 	'flushed': "<a:thats_so_flushed:806909343916097557>",
+	'peek': "<a:Peek:855423985860870175>"
 	}
 
 
@@ -63,7 +64,13 @@ async def on_ready():
 async def startup_functions():
 	await setup_guild()
 	await print_db()
-	# await sort_channels()
+
+	
+
+
+
+
+
 
 async def print_db():
 	print("-"*40)
@@ -76,11 +83,25 @@ async def print_db():
 
 
 
+
 async def setup_guild():
-	global guild, server_booster_role
+	global guild
+	global server_booster_role, auth_role, mod_role
+
 	guild = client.get_guild(806413017440845845)
 
 	server_booster_role = discord.utils.get(guild.roles, id=830465050174816336)
+	auth_role = discord.utils.get(guild.roles, id=807089336243454012)
+	mod_role = discord.utils.get(guild.roles, id=806420752076111872)
+
+
+
+
+
+async def send_chn_message(chn_id, msg):
+	chn = client.get_channel(chn_id)
+	await chn.send(msg)
+
 
 
 
@@ -256,18 +277,26 @@ async def on_message(message):
 
 
 		if(chn_id==820840150044770335): #bot-settings
-			if(msg=='++sort_per_chan'):
-				if(not(sorting_channels)):
-					if(await sort_channels()):
-						await message.reply("Sorting personal channels done.")
-				else:
-					await message.reply("Already sorting personal channels.")
+			if(msg.startswith('++')):
+				# sort per chan
+				if(msg=='++sort_per_chan'):
+					if(not(sorting_channels)):
+						if(await sort_channels()):
+							await message.reply("Sorting personal channels done.")
+					else:
+						await message.reply("Already sorting personal channels.")
+				# send chan message
+				if(msg.startswith('++send_ch')):
+					if(auth_role in msg_auth_roles):
+						await send_chn_message(int(msg.split()[1]), ' '.join(msg.split()[2:]))
+					await message.delete()
+					return;
 		
 		if(not(sorting_channels)):
 			if (time_now > last_time + 1 * 60):
 				if(message.channel.category):
 					if(chn_cat_id == 819890501415075880): # personal lairs
-							if(probability_channel_rank > randint(1, 2 + activity_personal_channels)):
+							if(probability_channel_rank > randint(1, 4 + activity_personal_channels)):
 								if(not(chn_id in (831345726394990593, 826062486766616617))):
 									db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
 									await channel_finder.send(f"<#{chn_id}> scored up")
