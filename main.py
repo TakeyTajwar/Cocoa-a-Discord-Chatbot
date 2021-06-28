@@ -431,7 +431,8 @@ async def answer_to_question(msg):
 
 	# answer = soup.find('p')
 	try:
-		answer = soup.find('div', class_="dd AnswrsV2").find(class_='compText')
+		# answer = soup.find('div', class_="dd AnswrsV2").find(class_='compText')
+		answer = soup.find('li', class_='va-top ov-h')
 	except:
 		return(False)
 	# print(answer)
