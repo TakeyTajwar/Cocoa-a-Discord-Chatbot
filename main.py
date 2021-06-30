@@ -191,7 +191,8 @@ async def on_member_join(member):
 
 		await new_channel.set_permissions(member,
 		                                  manage_channels=True,
-		                                  manage_messages=True)
+		                                  manage_messages=True,
+																			manage_permissions=True)
 		db["c_" + str(member.id)] = new_channel.id
 		db["chnScore_"+str(new_channel.id)] = 2
 
