@@ -41,14 +41,15 @@ activity_personal_channels = 0
 
 @client.event
 async def on_ready():
-	global personal_chan
+	global personal_channel
 	global channel_finder
+	
   
   
 	print(f"We have logged in as {client.user}")
 	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name='Layers of Fear'))
 	    
-	personal_chan = "——Personal Lairs——"
+	personal_channel = client.get_channel(819890501415075880)
 	channel_finder = client.get_channel(831345726394990593)
 
 	#for (u, c) in zip(users, channels):
@@ -180,13 +181,10 @@ async def on_member_join(member):
 		)
 
 		# create a new text channel
-		personal_channel = discord.utils.get(member.guild.categories,
-		                                     name=personal_chan)
-
 		new_channel = await member.guild.create_text_channel(
 		    f"{str(member).split('#')[0]}s-channel", category=personal_channel)
 		await new_channel.send(
-		    f"Welcome to your new personal channel, <@{member.id}>.\nThis is your personal Channel and you have your full control over it.\nYou can:\n`- Rename this Channel`\n`- Change the Channel's Description`\n`- Delete any message in this Channel`\n`- Pin any message in this Channel`\nHave Fun!"
+		    f"Welcome to your new personal channel, <@{member.id}>.\nThis is your personal Channel and you have your full control over it.\nYou can:\n`- Rename this Channel`\n`- Change the Channel's Description`\n`- Delete any message in this Channel`\n`- Pin any message in this Channel`\n- Manage permissions for any member or role`\nHave Fun!"
 		)
 
 		await new_channel.set_permissions(member,
@@ -219,7 +217,8 @@ async def remove_member_data(member_id, member_name = None):
 	await user_chan.delete()  #delete user's personal channel
 	del db['chnScore_' + str(db['c_'+str(member_id)])]
 	del db["c_" + str(member_id)]
-	del db["favmusic_" + str(member_id)]
+	if("favmusic_" + str(member_id) in db.keys()):
+		del db["favmusic_" + str(member_id)]
 
 
 
