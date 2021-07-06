@@ -6,6 +6,8 @@ import requests
 from replit import db
 from random import randint
 import time
+from datetime import datetime
+import asyncio
 
 from keep_alive import keep_alive
 
@@ -65,6 +67,7 @@ async def on_ready():
 async def startup_functions():
 	await setup_guild()
 	await print_db()
+	await	 update_utc_chn_name()
 
 	
 
@@ -95,6 +98,23 @@ async def setup_guild():
 	auth_role = discord.utils.get(guild.roles, id=807089336243454012)
 	mod_role = discord.utils.get(guild.roles, id=806420752076111872)
 
+
+
+
+
+async def update_utc_chn_name():
+	utc_chn = client.get_channel(861857005559218197)
+
+	while True:
+		utcnow = datetime.utcnow()
+		utcnow = str(utcnow)
+		utcnow = utcnow.split(' ')[1]
+		utcnow = utcnow.split('.')[0]
+		utcnow = utcnow[:-3]
+		print(utcnow)
+		await utc_chn.edit(name=f"🕒utc_time_{utcnow}")
+
+		await asyncio.sleep(60)
 
 
 
