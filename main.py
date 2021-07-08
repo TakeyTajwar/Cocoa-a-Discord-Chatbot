@@ -8,13 +8,14 @@ from random import randint
 import time
 from datetime import datetime
 import asyncio
+import re
 
 from keep_alive import keep_alive
 
 intents = discord.Intents.default()
 intents.presences = True
 intents.members = True
-client = commands.Bot(command_prefix='/DD', intents=intents)
+client = commands.Bot(command_prefix='++', intents=intents)
 
 
 
@@ -114,7 +115,7 @@ async def update_utc_chn_name():
 		print(utcnow)
 		await utc_chn.edit(name=f"🕒utc_time_{utcnow}")
 
-		await asyncio.sleep(60)
+		await asyncio.sleep(60*2)
 
 
 
@@ -262,12 +263,17 @@ async def on_message(message):
 		msg = message.content
 		msg_len = len(msg)
 		msg_auth = message.author
-		msg_auth_roles = msg_auth.roles
 		chn_id = message.channel.id
-		if(message.channel.category):
-			chn_cat_id = message.channel.category.id
+		if(not(str(message.channel.type)=='private')):
+			msg_auth_roles = msg_auth.roles
+			if(message.channel.category):
+				chn_cat_id = message.channel.category.id
+			else:
+				chn_cat_id = None
 		else:
-			chn_cat_id = None
+			msg_auth_roles = chn_cat_id = None
+		
+		
 
 		time_now = await get_time()
 
@@ -275,25 +281,26 @@ async def on_message(message):
 
 		print(f"{time_now}: {msg}") # read the message
 
-		if(time_now > last_time + 15 * 60):
+		if(time_now > last_time + 45 * 60):
 			activity_general = 0
 			activity_interests = 0
 			activity_misc = 0
 			activity_cool_ideas = 0
 			activity_personal_channels = 0
 		
-		if(chn_cat_id==806413018056491028):
-			activity_general += 1
-		elif(chn_cat_id==825523271004192799):
-			activity_interests += 1
-		elif(chn_cat_id==806423158344384512):
-			activity_misc += 1
-		elif(chn_cat_id==810881959273431092):
-			activity_cool_ideas += 1
-		elif(chn_cat_id==819890501415075880):
-			activity_personal_channels += 1
+		if(not(str(message.channel.type)=='private')):
+			if(chn_cat_id==806413018056491028):
+				activity_general += 1
+			elif(chn_cat_id==825523271004192799):
+				activity_interests += 1
+			elif(chn_cat_id==806423158344384512):
+				activity_misc += 1
+			elif(chn_cat_id==810881959273431092):
+				activity_cool_ideas += 1
+			elif(chn_cat_id==819890501415075880):
+				activity_personal_channels += 1
 
-		activity_summed = activity_general + activity_interests + activity_misc + activity_cool_ideas + activity_personal_channels
+			activity_summed = activity_general + activity_interests + activity_misc + activity_cool_ideas + activity_personal_channels
 
 
 		if(chn_id==820840150044770335): #bot-settings
@@ -306,11 +313,25 @@ async def on_message(message):
 					else:
 						await message.reply("Already sorting personal channels.")
 				# send chan message
-				if(msg.startswith('++send_ch')):
+				elif(msg.startswith('++send_ch')):
 					if(auth_role in msg_auth_roles):
 						await send_chn_message(int(msg.split()[1]), ' '.join(msg.split()[2:]))
 					await message.delete()
 					return;
+
+		# send secret message
+		elif(msg.lower().startswith(('++secret_msg', '++secret_message'))):
+			if(re.match('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*(\[.+])?\s*', msg)):
+				if(await secret_message(msg)==True):
+					await msg_auth.send("Secret message sent!")
+				else:
+					await msg_auth.send("Something went wrong sending the secret message. Please contact one of my developers so they can fix me. :'('")
+			else:
+				await msg_auth.send("**Invalid Syntax!**\nCorrect syntax is: ```++secret_msg USER_ID Message```\nWith secret name:```++secret_msg USER_ID [secret_name] Message```\nFor example:```++secret_msg 823554116356669521 [Your Secret Stalker] Hello, Dark & Daisy Lady!```")
+			if(not(str(message.channel.type)=='private')):
+					await message.delete()
+			return;
+				
 		
 		if(not(sorting_channels)):
 			if (time_now > last_time + 1 * 60):
@@ -402,6 +423,29 @@ async def on_message(message):
 
 		
 		last_time = time_now
+
+
+
+
+
+# secret message
+async def secret_message(msg):
+	# await user.send('message'))
+	user_id = int(re.search('[\d]{17,19}', msg).group())
+	user = client.get_user(user_id)
+	secret_name = re.search('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*\[(.+)]\s*', msg)
+	msg = re.sub('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*(\[.+])?\s*', '', msg)
+	msg = "**You have a new secret message!**\n" + msg
+	if(secret_name):
+		secret_name=secret_name.group(2)
+		msg = msg + "\n*-" + secret_name + "*"
+	await user.send(msg)
+	print("secret message sent")
+	return(True)
+
+
+
+
 
 
 # setup favourite music
