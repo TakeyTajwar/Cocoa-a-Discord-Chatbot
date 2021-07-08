@@ -320,10 +320,13 @@ async def on_message(message):
 					return;
 
 		# send secret message
-		elif(msg.lower().startswith(('++secret_msg', '++secret_message'))):
+		if(msg.lower().startswith(('++secret_msg', '++secret_message'))):
 			if(re.match('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*(\[.+])?\s*', msg)):
-				if(await secret_message(msg)==True):
+				scrt_msg = await secret_message(msg)
+				if(scrt_msg==True):
 					await msg_auth.send("Secret message sent!")
+				elif(scrt_msg.startswith('403')):
+					await msg_auth.send("I could not deliver the message to the recipient. Either the recipient doesn't want to receive messages from an user who isn't recipient's friend or the recipient has blocked me.")
 				else:
 					await msg_auth.send("Something went wrong sending the secret message. Please contact one of my developers so they can fix me. :'('")
 			else:
@@ -439,8 +442,12 @@ async def secret_message(msg):
 	if(secret_name):
 		secret_name=secret_name.group(2)
 		msg = msg + "\n*-" + secret_name + "*"
-	await user.send(msg)
-	print("secret message sent")
+	try:
+		await user.send(msg)
+		print("secret message sent")
+	except Exception as e:
+		print(e)
+		return(str(e))
 	return(True)
 
 
