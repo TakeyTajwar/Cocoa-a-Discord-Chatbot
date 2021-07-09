@@ -24,8 +24,10 @@ last_time = time.gmtime().tm_hour * 60 * 60 + time.gmtime(
 print(last_time)
 
 emojis = {
+	'verify': "<a:Verify:832201162345938986>",
 	'flushed': "<a:thats_so_flushed:806909343916097557>",
-	'peek': "<a:Peek:855423985860870175>"
+	'peek': "<a:Peek:855423985860870175>",
+	'butterflies': "<a:butterflies:832203019474960401>"
 	}
 
 
@@ -41,6 +43,8 @@ activity_cool_ideas = 0
 activity_personal_channels = 0
 
 
+inv_link = r"https://discord.gg/WrQkFpy7sg"
+
 
 @client.event
 async def on_ready():
@@ -55,22 +59,14 @@ async def on_ready():
 	personal_channel = client.get_channel(819890501415075880)
 	channel_finder = client.get_channel(831345726394990593)
 
-	#for (u, c) in zip(users, channels):
-	#  db["c_"+str(u)] = c
-	
-	
-	#chnnl = client.get_channel(814445041409064961)
-	#await chnnl.send(file=discord.File("read_the_rules.jpg"))
-
 	await startup_functions()
 
 
 async def startup_functions():
 	await setup_guild()
-	await print_db()
-	await	 update_utc_chn_name()
+	# await print_db()
 
-	
+	await	 update_utc_chn_name()	
 
 
 
@@ -115,7 +111,7 @@ async def update_utc_chn_name():
 		print(utcnow)
 		await utc_chn.edit(name=f"🕒utc_time_{utcnow}")
 
-		await asyncio.sleep(60*2)
+		await asyncio.sleep(5*60)
 
 
 
@@ -249,6 +245,8 @@ async def remove_member_data(member_id, member_name = None):
 # new message
 @client.event
 async def on_message(message):
+	await client.wait_until_ready()
+
 	global last_time
 	global TruthAsked
 	global sorting_channels
@@ -272,6 +270,9 @@ async def on_message(message):
 				chn_cat_id = None
 		else:
 			msg_auth_roles = chn_cat_id = None
+			guild = client.get_guild(806413017440845845)
+			if(not(msg_auth in guild.members)):
+				await msg_auth.send(f"Hey, it looks like you're not a member of our server. Here is an invite link to our server. We will love to have as one of us.\n{inv_link}")
 		
 		
 
@@ -322,13 +323,13 @@ async def on_message(message):
 		# send secret message
 		if(msg.lower().startswith(('++secret_msg', '++secret_message'))):
 			if(re.match('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*(\[.+])?\s*', msg)):
-				scrt_msg = await secret_message(msg)
+				scrt_msg = await secret_message(msg, sender=msg_auth)
 				if(scrt_msg==True):
-					await msg_auth.send("Secret message sent!")
+					await msg_auth.send(f"**Secret message sent! {emojis['verify']}**")
 				elif(scrt_msg.startswith('403')):
-					await msg_auth.send("I could not deliver the message to the recipient. Either the recipient doesn't want to receive messages from an user who isn't recipient's friend or the recipient has blocked me.")
+					await msg_auth.send(f"I am sorry. I could not deliver the secret message to the recipient. Discord does not allow bots to send messages to one who does not share any common server with the bot. The recipent needs to be a member of *Dark & Daisy Association* for me to send them a message.\nYou can send the recipent this invitation link: {inv_link}")
 				else:
-					await msg_auth.send("Something went wrong sending the secret message. Please contact one of my developers so they can fix me. :'('")
+					await msg_auth.send(f"Something went wrong sending the secret message. Please contact one of my developers so they can fix me. :'(\nErrorMessage:```{scrt_msg}```")
 			else:
 				await msg_auth.send("**Invalid Syntax!**\nCorrect syntax is: ```++secret_msg USER_ID Message```\nWith secret name:```++secret_msg USER_ID [secret_name] Message```\nFor example:```++secret_msg 823554116356669521 [Your Secret Stalker] Hello, Dark & Daisy Lady!```")
 			if(not(str(message.channel.type)=='private')):
@@ -432,13 +433,17 @@ async def on_message(message):
 
 
 # secret message
-async def secret_message(msg):
+async def secret_message(msg, sender=False):
 	# await user.send('message'))
 	user_id = int(re.search('[\d]{17,19}', msg).group())
-	user = client.get_user(user_id)
+	user = await client.fetch_user(user_id)
+	await client.wait_until_ready()
+	print(user)
+	if(sender):
+		await sender.send(f"Sending secret message to *{str(user)}*")
 	secret_name = re.search('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*\[(.+)]\s*', msg)
 	msg = re.sub('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*(\[.+])?\s*', '', msg)
-	msg = "**You have a new secret message!**\n" + msg
+	msg = f"**You have a new secret message! {emojis['butterflies']}**\n" + msg
 	if(secret_name):
 		secret_name=secret_name.group(2)
 		msg = msg + "\n*-" + secret_name + "*"
