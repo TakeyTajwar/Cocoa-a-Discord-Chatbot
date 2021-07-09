@@ -262,6 +262,7 @@ async def on_message(message):
 		msg_len = len(msg)
 		msg_auth = message.author
 		chn_id = message.channel.id
+		msg_attachments = message.attachments
 		if(not(str(message.channel.type)=='private')):
 			msg_auth_roles = msg_auth.roles
 			if(message.channel.category):
@@ -323,7 +324,7 @@ async def on_message(message):
 		# send secret message
 		if(msg.lower().startswith(('++secret_msg', '++secret_message'))):
 			if(re.match('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*(\[.+])?\s*', msg)):
-				scrt_msg = await secret_message(msg, sender=msg_auth)
+				scrt_msg = await secret_message(msg, sender=msg_auth, attachments=msg_attachments)
 				if(scrt_msg==True):
 					await msg_auth.send(f"**Secret message sent! {emojis['verify']}**")
 				elif(scrt_msg.startswith('403')):
@@ -339,7 +340,7 @@ async def on_message(message):
 		
 		if(not(sorting_channels)):
 			if (time_now > last_time + 1 * 60):
-				if(message.channel.category):
+				if(chn_cat_id):
 					if(chn_cat_id == 819890501415075880): # personal lairs
 							if(probability_channel_rank > randint(1, 4 + activity_personal_channels)):
 								if(not(chn_id in (831345726394990593, 826062486766616617))):
@@ -433,7 +434,7 @@ async def on_message(message):
 
 
 # secret message
-async def secret_message(msg, sender=False):
+async def secret_message(msg, sender=False, attachments=False):
 	# await user.send('message'))
 	user_id = int(re.search('[\d]{17,19}', msg).group())
 	user = await client.fetch_user(user_id)
@@ -449,6 +450,18 @@ async def secret_message(msg, sender=False):
 		msg = msg + "\n*-" + secret_name + "*"
 	try:
 		await user.send(msg)
+		# attachments
+		if(len(attachments)>0):
+			tmp_str = 'attachment' if (len(attachments)==1) else 'attachments'
+			await user.send(f"The secret message contains {len(attachments)} {tmp_str}.")
+			for attachment in attachments:
+				filename = attachment.filename
+				await attachment.save(filename)
+				await client.wait_until_ready()
+				await user.send(file=discord.File(filename))
+				await client.wait_until_ready()
+				os.remove(filename)
+
 		print("secret message sent")
 	except Exception as e:
 		print(e)
