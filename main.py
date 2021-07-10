@@ -202,7 +202,7 @@ async def on_member_join(member):
 		new_channel = await member.guild.create_text_channel(
 		    f"{str(member).split('#')[0]}s-channel", category=personal_channel)
 		await new_channel.send(
-		    f"Welcome to your new personal channel, <@{member.id}>.\nThis is your personal Channel and you have your full control over it.\nYou can:\n`- Rename this Channel`\n`- Change the Channel's Description`\n`- Delete any message in this Channel`\n`- Pin any message in this Channel`\n- Manage permissions for any member or role`\nHave Fun!"
+		    f"Welcome to your new personal channel, <@{member.id}>.\nThis is your personal Channel and you have your full control over it.\nYou can:\n`- Rename this Channel`\n`- Change the Channel's Description`\n`- Delete any message in this Channel`\n`- Pin any message in this Channel`\n`- Manage permissions for any member or role`\nHave Fun!"
 		)
 
 		await new_channel.set_permissions(member,
