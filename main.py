@@ -49,7 +49,7 @@ inv_link = r"https://discord.gg/WrQkFpy7sg"
 @client.event
 async def on_ready():
 	global personal_channel
-	global channel_finder
+	global channel_finder, lit_chan
 	
   
   
@@ -58,6 +58,7 @@ async def on_ready():
 	    
 	personal_channel = client.get_channel(819890501415075880)
 	channel_finder = client.get_channel(831345726394990593)
+	lit_chan = client.get_channel(825530904939069440)
 
 	await startup_functions()
 
@@ -339,7 +340,7 @@ async def on_message(message):
 				
 		
 		if(not(sorting_channels)):
-			if (time_now > last_time + 1 * 60):
+			if (time_now > last_time + 10):
 				if(chn_cat_id):
 					if(chn_cat_id == 819890501415075880): # personal lairs
 							if(probability_channel_rank > randint(1, 4 + activity_personal_channels)):
@@ -353,7 +354,7 @@ async def on_message(message):
 							else:
 								probability_channel_rank += 1
 
-					elif (probability_lit > randint(1, 50 + activity_summed)):
+					elif (probability_lit > randint(1, 70 + activity_summed)):
 						await post_4chan_lit(0)
 						probability_lit = 2
 					else:
@@ -537,12 +538,11 @@ async def post_4chan_lit(indx=1):
 	if (indx > 10):
 		indx = 0
 	print(f"4chan thread index: {indx}")
-	lit_chan = client.get_channel(825530904939069440)
 	html_text = requests.get('https://boards.4chan.org/lit/').text
 	# print(html_text)
 	soup = BeautifulSoup(html_text, 'lxml')
 	thread = soup.find_all('div', class_='thread')[indx]
-
+	await client.wait_until_ready()
 	# print(thread.find_all('img')) # thread src
 
 	subject = thread.find('span', class_='subject').text
@@ -568,10 +568,13 @@ async def post_4chan_lit(indx=1):
 		image = requests.get(img_src).content
 		with open("temp.jpg", "wb") as f:
 		  f.write(image)
+		await client.wait_until_ready()
 		image = discord.File("temp.jpg")
-		await lit_chan.send(
+		await client.lit_chan.send(
 		    f"**{emoji} {subject}**\n```\n{m}\n```", file=image
 		    )#+ "https://" + img_src)
+		await client.wait_until_ready()
+		os.remove('temp.jpg') # delete the image
 	else:
 		await lit_chan.send(
 		    f"**{emoji} {subject}**\n```\n{m}\n```"
