@@ -347,7 +347,7 @@ async def on_message(message):
 		await msg_auth.send("Please use `++help` to see all the commands.")
 	
 	if(not(sorting_channels)):
-		if (time_now > last_time + 10):
+		if (time_now > last_time + 35):
 			if(chn_cat_id):
 				if(chn_cat_id == 819890501415075880): # personal lairs
 						if(probability_channel_rank > randint(1, 4 + activity_personal_channels)):
