@@ -570,7 +570,7 @@ async def post_4chan_lit(indx=1):
 		  f.write(image)
 		await client.wait_until_ready()
 		image = discord.File("temp.jpg")
-		await client.lit_chan.send(
+		await lit_chan.send(
 		    f"**{emoji} {subject}**\n```\n{m}\n```", file=image
 		    )#+ "https://" + img_src)
 		await client.wait_until_ready()
