@@ -30,6 +30,10 @@ emojis = {
 	'butterflies': "<a:butterflies:832203019474960401>"
 	}
 
+commands = {
+	'++help': "See all the commands",
+	'++secret_msg': "Send secret messages to someone (you can add attachments)",
+}
 
 
 probability_lit = 2
@@ -258,72 +262,73 @@ async def on_message(message):
 	if (message.author == client.user):
 		return
 
-	else:
-		msg = message.content
-		msg_len = len(msg)
-		msg_auth = message.author
-		chn_id = message.channel.id
-		msg_attachments = message.attachments
-		if(not(str(message.channel.type)=='private')):
-			msg_auth_roles = msg_auth.roles
-			if(message.channel.category):
-				chn_cat_id = message.channel.category.id
-			else:
-				chn_cat_id = None
+	msg = message.content
+	msg_len = len(msg)
+	msg_auth = message.author
+	chn_id = message.channel.id
+	msg_attachments = message.attachments
+	if(not(str(message.channel.type)=='private')):
+		msg_auth_roles = msg_auth.roles
+		if(message.channel.category):
+			chn_cat_id = message.channel.category.id
 		else:
-			msg_auth_roles = chn_cat_id = None
-			guild = client.get_guild(806413017440845845)
-			if(not(msg_auth in guild.members)):
-				await msg_auth.send(f"Hey, it looks like you're not a member of our server. Here is an invite link to our server. We will love to have as one of us.\n{inv_link}")
-		
-		
+			chn_cat_id = None
+	else:
+		msg_auth_roles = chn_cat_id = None
+		guild = client.get_guild(806413017440845845)
+		if(not(msg_auth in guild.members)):
+			await msg_auth.send(f"Hey, it looks like you're not a member of our server. Here is an invite link to our server. We will love to have as one of us.\n{inv_link}")
+	
+	
 
-		time_now = await get_time()
+	time_now = await get_time()
 
-		# print(msg_auth_roles)
+	# print(msg_auth_roles)
 
-		print(f"{time_now}: {msg}") # read the message
+	print(f"{time_now}: {msg}") # read the message
 
-		if(time_now > last_time + 45 * 60):
-			activity_general = 0
-			activity_interests = 0
-			activity_misc = 0
-			activity_cool_ideas = 0
-			activity_personal_channels = 0
-		
-		if(not(str(message.channel.type)=='private')):
-			if(chn_cat_id==806413018056491028):
-				activity_general += 1
-			elif(chn_cat_id==825523271004192799):
-				activity_interests += 1
-			elif(chn_cat_id==806423158344384512):
-				activity_misc += 1
-			elif(chn_cat_id==810881959273431092):
-				activity_cool_ideas += 1
-			elif(chn_cat_id==819890501415075880):
-				activity_personal_channels += 1
+	if(time_now > last_time + 45 * 60):
+		activity_general = 0
+		activity_interests = 0
+		activity_misc = 0
+		activity_cool_ideas = 0
+		activity_personal_channels = 0
+	
+	if(not(str(message.channel.type)=='private')):
+		if(chn_cat_id==806413018056491028):
+			activity_general += 1
+		elif(chn_cat_id==825523271004192799):
+			activity_interests += 1
+		elif(chn_cat_id==806423158344384512):
+			activity_misc += 1
+		elif(chn_cat_id==810881959273431092):
+			activity_cool_ideas += 1
+		elif(chn_cat_id==819890501415075880):
+			activity_personal_channels += 1
 
-			activity_summed = activity_general + activity_interests + activity_misc + activity_cool_ideas + activity_personal_channels
+		activity_summed = activity_general + activity_interests + activity_misc + activity_cool_ideas + activity_personal_channels
 
-
+	if(msg.startswith('++')): # commands
 		if(chn_id==820840150044770335): #bot-settings
-			if(msg.startswith('++')):
-				# sort per chan
-				if(msg=='++sort_per_chan'):
-					if(not(sorting_channels)):
-						if(await sort_channels()):
-							await message.reply("Sorting personal channels done.")
-					else:
-						await message.reply("Already sorting personal channels.")
-				# send chan message
-				elif(msg.startswith('++send_ch')):
-					if(auth_role in msg_auth_roles):
-						await send_chn_message(int(msg.split()[1]), ' '.join(msg.split()[2:]))
-					await message.delete()
-					return;
+			# sort per chan
+			if(msg=='++sort_per_chan'):
+				if(not(sorting_channels)):
+					if(await sort_channels()):
+						await message.reply("Sorting personal channels done.")
+				else:
+					await message.reply("Already sorting personal channels.")
+			# send chan message
+			elif(msg.startswith('++send_ch')):
+				if(auth_role in msg_auth_roles):
+					await send_chn_message(int(msg.split()[1]), ' '.join(msg.split()[2:]))
+				await message.delete()
+				return;
 
 		# send secret message
-		if(msg.lower().startswith(('++secret_msg', '++secret_message'))):
+		if(msg.lower().startswith('++help')):
+			await message.reply(await help_msg(msg_auth))
+		
+		elif(msg.lower().startswith(('++secret_msg', '++secret_message'))):
 			if(re.match('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*(\[.+])?\s*', msg)):
 				scrt_msg = await secret_message(msg, sender=msg_auth, attachments=msg_attachments)
 				if(scrt_msg==True):
@@ -337,98 +342,111 @@ async def on_message(message):
 			if(not(str(message.channel.type)=='private')):
 					await message.delete()
 			return;
-				
 		
-		if(not(sorting_channels)):
-			if (time_now > last_time + 10):
-				if(chn_cat_id):
-					if(chn_cat_id == 819890501415075880): # personal lairs
-							if(probability_channel_rank > randint(1, 4 + activity_personal_channels)):
-								if(not(chn_id in (831345726394990593, 826062486766616617))):
-									db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
-									await channel_finder.send(f"<#{chn_id}> scored up")
-									print("personal channel scored up")
-									if(2 > randint(1, 5)):
-										await sort_channels()
-										probability_channel_rank = 2
-							else:
-								probability_channel_rank += 1
+	elif(str(message.channel.type)=='private'):
+		await msg_auth.send("Please use `++help` to see all the commands.")
+	
+	if(not(sorting_channels)):
+		if (time_now > last_time + 10):
+			if(chn_cat_id):
+				if(chn_cat_id == 819890501415075880): # personal lairs
+						if(probability_channel_rank > randint(1, 4 + activity_personal_channels)):
+							if(not(chn_id in (831345726394990593, 826062486766616617))):
+								db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
+								await channel_finder.send(f"<#{chn_id}> scored up")
+								print("personal channel scored up")
+								if(2 > randint(1, 5)):
+									await sort_channels()
+									probability_channel_rank = 2
+						else:
+							probability_channel_rank += 1
 
-					elif (probability_lit > randint(1, 70 + activity_summed)):
-						await post_4chan_lit(0)
-						probability_lit = 2
-					else:
-						probability_lit += 1
-				
-		if(message.channel.id == 825530904939069440): #literature
-			LitMsg = message.content.lower()
-			for c in ["'", " ", ".", "please", ","]:
-				LitMsg = LitMsg.replace(c, "")
-			print(LitMsg)
-			if (LitMsg == "provideuswithathread"):
-				await post_4chan_lit(randint(0,2))
-
-			elif (LitMsg == "differentthread"):
-				await post_4chan_lit(randint(4, 7))
-		
-		# if message mentions @everyone
-		if("@everyone" in msg):
-			await message.delete()
-		
-		elif(message.channel.id == 831345726394990593): #channel-finder
-			if(msg.lower()=="all"):
-				text = []
-				for c_u in db.prefix('c_'):
-					if(not(c_u.startswith('chnScore_'))):
-						text_ = ""
-						text_ = text_ + (f":stars:`{str(client.get_user(int(c_u[2:])))[:-5]}`: <#{db[c_u]}>")
-						text_ = text_ + (f" ({db['chnScore_'+str(db['c_'+str(c_u[2:])])]})\n")
-						text.append(text_)
-				text = sorted(text)
-				text = ''.join(text)
-				# text.replace('_', '\_').replace('**', '\**').replace('*', '\*')
-				await channel_finder.send(text)
-			elif(msg.startswith('<@') and msg.endswith('>')):
-				m = msg.replace('!', '')
-				await channel_finder.send(f"<#{db['c_'+(m[2:-1])]}>" + '\n' + f"Score: {db['chnScore_'+str(db['c_'+(m[2:-1])])]}")
-			else:
-				print("NO USE: " + msg)
-				await message.delete()
-		
-		elif(chn_id == 850962046527078441): #boosters-only
-			if(not(server_booster_role in msg_auth_roles)):
-				await message.delete()
-				print("deleting message;")
-				return;
-
-		if("<@823554116356669521>" in msg or "<@!823554116356669521>" in msg):
-			print("DDL is mentioned;")
-			if("truth or dare" in msg.lower().replace('?', '')):
-				await message.reply("Truth.")
-			elif(msg.endswith('?')):
-				print("answering a question;")
-				ans = await answer_to_question(msg)
-				if(ans):
-					await message.reply(ans)
+				elif (probability_lit > randint(1, 70 + activity_summed)):
+					await post_4chan_lit(0)
+					probability_lit = 2
 				else:
-					await message.reply("I don't know.")
+					probability_lit += 1
 			
-			if(message.channel.id == 806413018056491031): #music
-				print("music channel")
-				if(await words_in_string(['track', 'my', 'favourite', 'spotify'], msg.lower())):
-					await message.channel.send(await setup_favourite_music(message.author.id, msg.split()[-1]))
-				elif(await words_in_string(['what', 'my', 'track', 'favourite'], msg.lower())):
-					await message.channel.send(await show_favourite_music(message.author.id, message.channel))
-				elif(await words_in_string(['what', '<@', 'track', 'favourite'], msg.replace('!', '').lower())):
-					mentioned = await whos_mentioned(msg.replace('!', '').replace('<@823554116356669521>', ''))
-					print(f"{mentioned} is mentioned")
-					await message.channel.send(await show_favourite_music(mentioned, message.channel))
-		
-		if('flushed' in msg or 'flush me' in msg):
-			await message.add_reaction(emojis['flushed'])
+	if(message.channel.id == 825530904939069440): #literature
+		LitMsg = message.content.lower()
+		for c in ["'", " ", ".", "please", ","]:
+			LitMsg = LitMsg.replace(c, "")
+		print(LitMsg)
+		if (LitMsg == "provideuswithathread"):
+			await post_4chan_lit(randint(0,2))
 
+		elif (LitMsg == "differentthread"):
+			await post_4chan_lit(randint(4, 7))
+	
+	# if message mentions @everyone
+	if("@everyone" in msg):
+		await message.delete()
+	
+	elif(message.channel.id == 831345726394990593): #channel-finder
+		if(msg.lower()=="all"):
+			text = []
+			for c_u in db.prefix('c_'):
+				if(not(c_u.startswith('chnScore_'))):
+					text_ = ""
+					text_ = text_ + (f":stars:`{str(client.get_user(int(c_u[2:])))[:-5]}`: <#{db[c_u]}>")
+					text_ = text_ + (f" ({db['chnScore_'+str(db['c_'+str(c_u[2:])])]})\n")
+					text.append(text_)
+			text = sorted(text)
+			text = ''.join(text)
+			# text.replace('_', '\_').replace('**', '\**').replace('*', '\*')
+			await channel_finder.send(text)
+		elif(msg.startswith('<@') and msg.endswith('>')):
+			m = msg.replace('!', '')
+			await channel_finder.send(f"<#{db['c_'+(m[2:-1])]}>" + '\n' + f"Score: {db['chnScore_'+str(db['c_'+(m[2:-1])])]}")
+		else:
+			print("NO USE: " + msg)
+			await message.delete()
+	
+	elif(chn_id == 850962046527078441): #boosters-only
+		if(not(server_booster_role in msg_auth_roles)):
+			await message.delete()
+			print("deleting message;")
+			return;
+
+	if("<@823554116356669521>" in msg or "<@!823554116356669521>" in msg):
+		print("DDL is mentioned;")
+		if("truth or dare" in msg.lower().replace('?', '')):
+			await message.reply("Truth.")
+		elif(msg.endswith('?')):
+			print("answering a question;")
+			ans = await answer_to_question(msg)
+			if(ans):
+				await message.reply(ans)
+			else:
+				await message.reply("I don't know.")
 		
-		last_time = time_now
+		if(message.channel.id == 806413018056491031): #music
+			print("music channel")
+			if(await words_in_string(['track', 'my', 'favourite', 'spotify'], msg.lower())):
+				await message.channel.send(await setup_favourite_music(message.author.id, msg.split()[-1]))
+			elif(await words_in_string(['what', 'my', 'track', 'favourite'], msg.lower())):
+				await message.channel.send(await show_favourite_music(message.author.id, message.channel))
+			elif(await words_in_string(['what', '<@', 'track', 'favourite'], msg.replace('!', '').lower())):
+				mentioned = await whos_mentioned(msg.replace('!', '').replace('<@823554116356669521>', ''))
+				print(f"{mentioned} is mentioned")
+				await message.channel.send(await show_favourite_music(mentioned, message.channel))
+	
+	if('flushed' in msg or 'flush me' in msg):
+		await message.add_reaction(emojis['flushed'])
+
+	
+	last_time = time_now
+
+
+
+
+async def help_msg(user):
+	await client.wait_until_ready()
+	help_msg = ""
+	for command in commands:
+		help_msg = help_msg + '`' + command + '`' + ": " + commands[command] + '\n'
+	client.wait_until_ready()
+	return(help_msg)
 
 
 
