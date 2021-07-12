@@ -355,7 +355,7 @@ async def on_message(message):
 								db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
 								await channel_finder.send(f"<#{chn_id}> scored up")
 								print("personal channel scored up")
-								if(2 > randint(1, 5)):
+								if(3 > randint(1, 5)):
 									await sort_channels()
 									probability_channel_rank = 2
 						else:
