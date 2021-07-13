@@ -54,6 +54,7 @@ inv_link = r"https://discord.gg/WrQkFpy7sg"
 async def on_ready():
 	global personal_channel
 	global channel_finder, lit_chan
+	global last_time_prch_sorted
 	
   
   
@@ -63,6 +64,8 @@ async def on_ready():
 	personal_channel = client.get_channel(819890501415075880)
 	channel_finder = client.get_channel(831345726394990593)
 	lit_chan = client.get_channel(825530904939069440)
+
+	last_time_prch_sorted = 0
 
 	await startup_functions()
 
@@ -142,8 +145,11 @@ async def give_equal_channel_values(value=2):
 
 sorting_channels = False
 async def sort_channels(value=False):
-	global sorting_channels
+	global sorting_channels, last_time_prch_sorted
+	last_time_prch_sorted = await get_time()
+	await client.wait_until_ready()
 	print("Soring Channels...")
+	await channel_finder.send("Sorting Channels.")
 	sorting_channels = True
 
 	if(not(value)):
@@ -355,15 +361,16 @@ async def on_message(message):
 								db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
 								await channel_finder.send(f"<#{chn_id}> scored up")
 								print("personal channel scored up")
-								if(3 > randint(1, 5)):
-									await sort_channels()
-									probability_channel_rank = 2
+								if(3 >= randint(1, 5)):
+									if(last_time_prch_sorted < time_now + 30 * 60):
+										await sort_channels()
+									probability_channel_rank = 0
 						else:
 							probability_channel_rank += 1
 
 				elif (probability_lit > randint(1, 70 + activity_summed)):
 					await post_4chan_lit(0)
-					probability_lit = 2
+					probability_lit = 0
 				else:
 					probability_lit += 1
 			
