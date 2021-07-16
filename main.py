@@ -335,16 +335,18 @@ async def on_message(message):
 			await message.reply(await help_msg(msg_auth))
 		
 		elif(msg.lower().startswith(('++secret_msg', '++secret_message'))):
-			if(re.match('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*(\[.+])?\s*', msg)):
+			if((re.match('^\+\+secret_(msg|message)\s*<?@?!?[\d]{17,19}>?\s*(\[.+])?\s*', msg)) or re.match('\+\+secret_(msg|message)\s*@?([\w\d\s]+#\d{4})\s*', msg)):
 				scrt_msg = await secret_message(msg, sender=msg_auth, attachments=msg_attachments)
 				if(scrt_msg==True):
 					await msg_auth.send(f"**Secret message sent! {emojis['verify']}**")
 				elif(scrt_msg.startswith('403')):
 					await msg_auth.send(f"I am sorry. I could not deliver the secret message to the recipient. Discord does not allow bots to send messages to one who does not share any common server with the bot. The recipent needs to be a member of *Dark & Daisy Association* for me to send them a message.\nYou can send the recipent this invitation link: {inv_link}")
+				elif(scrt_msg.startswith('StC')):
+					await msg_auth.send(f"{emojis['peek']} You can't send secret messages to me, silly.")
 				else:
 					await msg_auth.send(f"Something went wrong sending the secret message. Please contact one of my developers so they can fix me. :'(\nErrorMessage:```{scrt_msg}```")
 			else:
-				await msg_auth.send("**Invalid Syntax!**\nCorrect syntax is: ```++secret_msg USER_ID Message```\nWith secret name:```++secret_msg USER_ID [secret_name] Message```\nFor example:```++secret_msg 823554116356669521 [Your Secret Stalker] Hello, Dark & Daisy Lady!```")
+				await msg_auth.send("**Invalid Syntax!**\nCorrect syntax is: ```++secret_msg USER_ID Message```\nWith secret name:```++secret_msg USER_ID [secret_name] Message```\nFor example:```++secret_msg 823554116356669521 [Your Secret Stalker] Hello, Dark & Daisy Lady!```\nOr you can use Username too:\n```++secret_msg @Dark & Daisy Lady#1095 [Your Secret Stalker] Hello, Dark & Daisy Lady!```")
 			if(not(str(message.channel.type)=='private')):
 					await message.delete()
 			return;
@@ -462,12 +464,19 @@ async def help_msg(user):
 # secret message
 async def secret_message(msg, sender=False, attachments=False):
 	# await user.send('message'))
-	user_id = int(re.search('[\d]{17,19}', msg).group())
-	user = await client.fetch_user(user_id)
+	if(re.match('\+\+secret_(msg|message)\s*@?([\w\d\s]+#\d{4})\s*', msg)):
+		user = re.search('\+\+secret_(msg|message)\s*@([\w\d\s]+#\d{4})\s*', msg)[2]
+		user = user.split('#')
+		user = discord.utils.get(client.get_all_members(), name=user[0], discriminator=user[1])
+	else:
+		user_id = int(re.search('[\d]{17,19}', msg).group())
+		user = await client.fetch_user(user_id)
 	await client.wait_until_ready()
 	print(user)
+	if(user.id==823554116356669521):
+		return("StC");
 	if(sender):
-		await sender.send(f"Sending secret message to *{str(user)}*")
+		await sender.send(f"Sending secret message to *{str(user)} ({user.id})*")
 	secret_name = re.search('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*\[(.+)]\s*', msg)
 	msg = re.sub('^\+\+secret_(msg|message)\s*[\d]{17,19}\s*(\[.+])?\s*', '', msg)
 	msg = f"**You have a new secret message! {emojis['butterflies']}**\n" + msg
