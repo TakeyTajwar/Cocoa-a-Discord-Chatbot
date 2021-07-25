@@ -4,6 +4,7 @@ from discord.ext import commands
 from bs4 import BeautifulSoup
 import requests
 from replit import db
+import random
 from random import randint
 import time
 from datetime import datetime
@@ -52,9 +53,10 @@ inv_link = r"https://discord.gg/WrQkFpy7sg"
 
 @client.event
 async def on_ready():
-	global personal_channel
+	global personal_channel, personal_channel_new
+	global list_personal_channel
 	global channel_finder, lit_chan
-	global last_time_prch_sorted
+	global last_time_prch_sorted, list_id_personal_channel
 	
   
   
@@ -62,6 +64,11 @@ async def on_ready():
 	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name='Layers of Fear'))
 	    
 	personal_channel = client.get_channel(819890501415075880)
+	personal_channel_new = client.get_channel(868910910297755648)
+
+	list_personal_channel = [personal_channel, personal_channel_new]
+	list_id_personal_channel = [channel.id for channel in list_personal_channel]
+
 	channel_finder = client.get_channel(831345726394990593)
 	lit_chan = client.get_channel(825530904939069440)
 
@@ -73,6 +80,7 @@ async def on_ready():
 async def startup_functions():
 	await setup_guild()
 	# await print_db()
+
 
 	await	 update_utc_chn_name()	
 
@@ -130,6 +138,43 @@ async def send_chn_message(chn_id, msg):
 
 
 
+async def score_up_per_chan(chn_id):
+	db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
+	await channel_finder.send(f"<#{chn_id}> scored up")
+	print("personal channel scored up")
+
+	await rank_per_chan(chn_id)
+
+
+async def rank_per_chan(chn_id):
+	chn = client.get_channel(chn_id)
+	if(chn.category == personal_channel_new):
+			if(db['chnScore_'+str(chn_id)] > 3):
+				if(len(personal_channel.channels) < 47):
+					await chn.edit(category = personal_channel)
+					await channel_finder.send(f"<#{chn_id}> ranked up!")
+				else:
+					await rank_all_per_chan(specific_cat=personal_channel)
+	
+	elif(chn.category == personal_channel):
+		if(db['chnScore_' + str(chn_id)] <= 3):
+			await chn.edit(category = personal_channel_new)
+			await channel_finder.send(f"<#{chn_id}> ranked down.")
+
+
+
+async def rank_all_per_chan(specific_cat = None):
+	await client.wait_until_ready()
+	if(specific_cat == None):
+		for cat in list_personal_channel:
+				for chn in cat.channels:
+					if(not(chn.id in [831345726394990593, 826062486766616617])):
+						await rank_per_chan(chn.id)
+	else:
+		for chn in specific_cat.channels:
+			if(not(chn.id in [831345726394990593, 826062486766616617])):
+				await rank_per_chan(chn.id)
+
 
 
 async def give_equal_channel_values(value=2):
@@ -144,7 +189,7 @@ async def give_equal_channel_values(value=2):
 
 
 sorting_channels = False
-async def sort_channels(value=False):
+async def sort_channels(value=2):
 	global sorting_channels, last_time_prch_sorted
 	last_time_prch_sorted = await get_time()
 	await client.wait_until_ready()
@@ -168,7 +213,15 @@ async def sort_channels(value=False):
 		id=channel[0]
 		chn = client.get_channel(id)
 		if(chn):
-			await chn.edit(position=value)
+			if(chn.category == personal_channel):
+				if(not(chn.id in [831345726394990593, 826062486766616617])):
+					await chn.edit(position=value)
+			if(chn.category == personal_channel_new):
+				await chn.edit(position=0)
+	
+	await client.get_channel(831345726394990593).edit(position=0)
+	await client.get_channel(826062486766616617).edit(position=1)
+
 	print("Done.")
 	sorting_channels = False
 	return(True)
@@ -207,22 +260,26 @@ async def on_member_join(member):
 		await channel.send(
 		    f"Welcome to the server, {str(member).split('#')[0]}! We are glad you joined. I will create a new personal channel just for you."
 		)
-
-		# create a new text channel
-		new_channel = await member.guild.create_text_channel(
-		    f"{str(member).split('#')[0]}s-channel", category=personal_channel)
-		await new_channel.send(
-		    f"Welcome to your new personal channel, <@{member.id}>.\nThis is your personal Channel and you have your full control over it.\nYou can:\n`- Rename this Channel`\n`- Change the Channel's Description`\n`- Delete any message in this Channel`\n`- Pin any message in this Channel`\n`- Manage permissions for any member or role`\nHave Fun!"
-		)
-
-		await new_channel.set_permissions(member,
-		                                  manage_channels=True,
-		                                  manage_messages=True,
-																			manage_permissions=True)
-		db["c_" + str(member.id)] = new_channel.id
-		db["chnScore_"+str(new_channel.id)] = 2
+		await create_per_chan(member)
 
 
+
+async def create_per_chan(member):
+	if(not(member in guild.members)):
+		return("Inv_UserNotMember")
+	# create a new text channel
+	new_channel = await guild.create_text_channel(
+			f"{str(member).split('#')[0]}s-channel", category=personal_channel_new)
+	await new_channel.send(
+			f"Welcome to your new personal channel, <@{member.id}>.\nThis is your personal Channel and you have your full control over it.\nYou can:\n`- Rename this Channel`\n`- Change the Channel's Description`\n`- Delete any message in this Channel`\n`- Pin any message in this Channel`\n`- Manage permissions for any member or role`\nHave Fun!"
+	)
+	await new_channel.set_permissions(member,
+																		manage_channels=True,
+																		manage_messages=True,
+																		manage_permissions=True)
+	db["c_" + str(member.id)] = new_channel.id
+	db["chnScore_"+str(new_channel.id)] = 2
+	return(True)
 
 
 
@@ -243,11 +300,33 @@ async def remove_member_data(member_id, member_name = None):
 	user_chan_id = db["c_" + str(member_id)]
 	user_chan = client.get_channel(user_chan_id)
 	await user_chan.delete()  #delete user's personal channel
-	del db['chnScore_' + str(db['c_'+str(member_id)])]
-	del db["c_" + str(member_id)]
+	await delete_per_chan_info(member_id)
 	if("favmusic_" + str(member_id) in db.keys()):
 		del db["favmusic_" + str(member_id)]
 
+
+
+async def delete_per_chan_info(member_id):
+	print("Deleting personal chan informations")
+	del db['chnScore_' + str(db['c_'+str(member_id)])]
+	del db["c_" + str(member_id)]
+
+
+
+
+@client.event
+async def on_guild_channel_delete(channel):
+	print("A channel has been deleted")
+	channel_id = channel.id
+	if channel.category == personal_channel:
+		print("Personal channel deleted.")
+		for c_u in db.prefix('c_'):
+			if(not(c_u.startswith('chnScore_'))):
+				if(db[c_u] == str(channel_id)):
+					await delete_per_chan_info(c_u)
+					break;
+
+			
 
 
 
@@ -357,12 +436,10 @@ async def on_message(message):
 	if(not(sorting_channels)):
 		if (time_now > last_time + 35):
 			if(chn_cat_id):
-				if(chn_cat_id == 819890501415075880): # personal lairs
+				if(chn_cat_id in list_id_personal_channel): # personal channel
 						if(probability_channel_rank > randint(1, 4 + activity_personal_channels)):
 							if(not(chn_id in (831345726394990593, 826062486766616617))):
-								db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
-								await channel_finder.send(f"<#{chn_id}> scored up")
-								print("personal channel scored up")
+								await score_up_per_chan(chn_id)
 								if(3 >= randint(1, 5)):
 									if(time_now > last_time_prch_sorted + 30 * 60):
 										await sort_channels()
@@ -406,7 +483,20 @@ async def on_message(message):
 			await channel_finder.send(text)
 		elif(msg.startswith('<@') and msg.endswith('>')):
 			m = msg.replace('!', '')
-			await channel_finder.send(f"<#{db['c_'+(m[2:-1])]}>" + '\n' + f"Score: {db['chnScore_'+str(db['c_'+(m[2:-1])])]}")
+			# print(m)
+			# print(client.get_channel(db['c_'+(m[2:-1])]))
+			if ('c_'+(m[2:-1]) in db) and (not(client.get_channel(db['c_'+(m[2:-1])]) == None)):
+				await channel_finder.send(f"<#{db['c_'+(m[2:-1])]}>" + '\n' + f"Score: {db['chnScore_'+str(db['c_'+(m[2:-1])])]}")
+			else:
+				m_member = client.get_user(int(m[2:-1]))
+				await channel_finder.send("Unfortunately the user currently does not have a personal channel. But not to worry I will make one right now.")
+				create_per_chan_return = await create_per_chan(m_member)
+				if(create_per_chan_return == True):
+					await channel_finder.send("Done creating a new channel for the user.")
+				elif(create_per_chan_return == "Inv_UserNotMember"):
+					await channel_finder.send("The user is not a member of our server. Can not create a channel for someone who is not a member of our server.")
+				else:
+					await channel_finder.send("Failed to create a new channel for the user.")
 		else:
 			print("NO USE: " + msg)
 			await message.delete()
