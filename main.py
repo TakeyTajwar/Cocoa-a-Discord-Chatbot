@@ -469,18 +469,47 @@ async def on_message(message):
 		await message.delete()
 	
 	elif(message.channel.id == 831345726394990593): #channel-finder
-		if(msg.lower()=="all"):
+		if(re.match(r'all ?[\d]*', msg.lower())):
 			text = []
-			for c_u in db.prefix('c_'):
-				if(not(c_u.startswith('chnScore_'))):
-					text_ = ""
-					text_ = text_ + (f":stars:`{str(client.get_user(int(c_u[2:])))[:-5]}`: <#{db[c_u]}>")
-					text_ = text_ + (f" ({db['chnScore_'+str(db['c_'+str(c_u[2:])])]})\n")
-					text.append(text_)
-			text = sorted(text)
-			text = ''.join(text)
-			# text.replace('_', '\_').replace('**', '\**').replace('*', '\*')
-			await channel_finder.send(text)
+			if(msg.lower()=="all"):
+				try:
+					for c_u in db.prefix('c_'):
+						if(not(c_u.startswith('chnScore_'))):
+							text_ = ""
+							text_ = text_ + (f":stars:`{str(client.get_user(int(c_u[2:])))[:-5]}`: <#{db[c_u]}>")
+							text_ = text_ + (f" ({db['chnScore_'+str(db['c_'+str(c_u[2:])])]})\n")
+							text.append(text_)
+					text = sorted(text)
+					# text = ''.join(text)
+					for t_ in text:
+						await channel_finder.send(t_)
+				except Exception as e:
+					await channel_finder.send(e)
+		elif(re.match(r'top ?[\d]+', msg.lower())):
+			all_chn_score = {}
+			range_ = int(re.search(r'\d+', msg.lower()).group(0))
+			
+			for chn_ in db.prefix('chnScore_'):
+				all_chn_score[chn_] = db[str(chn_)]
+			
+			all_chn_score = {k: v for k, v in sorted(all_chn_score.items(), key=lambda item: item[1], reverse=True)}
+			all_chn_score = {A:N for (A,N) in [x for x in all_chn_score.items()][:range_]}
+			# print(all_chn_score)
+			r_ = 1
+			await channel_finder.send("="*20)
+			for k, v in all_chn_score.items():
+				# if(not(r>r_)):
+				# 	break
+				try:
+					await client.wait_until_ready()
+					# await channel_finder.send(f"<#{all_chn_score[r_]}>: {all_chn_score.keys()[r_]}")
+					await channel_finder.send(f"**{r_}** <#{(k.split('_')[-1])}>: `{v}`")
+					r_ += 1
+				except Exception as e:
+					await channel_finder.send(e)
+			await channel_finder.send("="*20)
+
+			
 		elif(msg.startswith('<@') and msg.endswith('>')):
 			m = msg.replace('!', '')
 			# print(m)
