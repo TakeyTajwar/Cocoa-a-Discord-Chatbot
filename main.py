@@ -53,8 +53,9 @@ inv_link = r"https://discord.gg/WrQkFpy7sg"
 
 @client.event
 async def on_ready():
-	global personal_channel, personal_channel_new
+	global personal_channel, personal_channel_nobles, personal_channel_knights, personal_channel_citizens, personal_channel_new, personal_channel_exc
 	global list_personal_channel
+	global list_score_thr_personal_channel
 	global channel_finder, lit_chan
 	global last_time_prch_sorted, list_id_personal_channel
 	
@@ -63,11 +64,16 @@ async def on_ready():
 	print(f"We have logged in as {client.user}")
 	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name='Layers of Fear'))
 	    
-	personal_channel = client.get_channel(819890501415075880)
-	personal_channel_new = client.get_channel(868910910297755648)
+	personal_channel = client.get_channel(819890501415075880) # monarch
+	personal_channel_nobles = client.get_channel(870210864047849513) # nobles 
+	personal_channel_knights = client.get_channel(870210934520553543) #knights
+	personal_channel_citizens = client.get_channel(870211119774584903) # citizens
+	personal_channel_new = client.get_channel(868910910297755648) # settlers
+	personal_channel_exc = client.get_channel(869599701647917106) # execution
 
-	list_personal_channel = [personal_channel, personal_channel_new]
+	list_personal_channel = [personal_channel, personal_channel_nobles, personal_channel_knights, personal_channel_citizens, personal_channel_new, personal_channel_exc]
 	list_id_personal_channel = [channel.id for channel in list_personal_channel]
+	list_score_thr_personal_channel = [10, 8, 6, 4, 1, 0]
 
 	channel_finder = client.get_channel(831345726394990593)
 	lit_chan = client.get_channel(825530904939069440)
@@ -180,25 +186,46 @@ async def score_down_all_per_chan():
 						except:
 							await score_down_per_chan(chn.id)
 	
-	await rank_all_per_chan()
+	# await rank_all_per_chan()
 	await sort_channels()
 							
 
 
 async def rank_per_chan(chn_id):
 	chn = client.get_channel(chn_id)
-	if(chn.category == personal_channel_new):
-			if(db['chnScore_'+str(chn_id)] > 3):
-				if(len(personal_channel.channels) < 47):
-					await chn.edit(category = personal_channel)
-					await channel_finder.send(f"<#{chn_id}> ranked up!")
-				else:
-					await rank_all_per_chan(specific_cat=personal_channel)
+	chn_cat = chn.category
+	chn_score = db['chnScore_'+str(chn_id)]
 	
-	elif(chn.category == personal_channel):
-		if(db['chnScore_' + str(chn_id)] <= 3):
-			await chn.edit(category = personal_channel_new)
-			await channel_finder.send(f"<#{chn_id}> ranked down.")
+	if(chn_score >= list_score_thr_personal_channel[0]): # monarchs
+		if(chn_cat != list_personal_channel[0]):
+			if(len(list_personal_channel[0].channels) < 47):
+				await chn.edit(category = list_personal_channel[0])
+				await channel_finder.send(f"<#{chn_id}> ranked up to <#{list_id_personal_channel[0]}>!")
+			else:
+				await send_chn_message(820840150044770335, f"<#{list_id_personal_channel[0]}> is (/almost) full!")
+				await rank_all_per_chan(specific_cat=list_id_personal_channel[0])
+		return;
+
+	for i in list(range(1, len(list_personal_channel))):
+		if(chn_score >= list_score_thr_personal_channel[i]):
+			if(chn_cat != list_personal_channel[i]):
+				if(len(list_personal_channel[i].channels) < 47):
+					await chn.edit(category = list_personal_channel[i])
+					await channel_finder.send(f"<#{chn_id}> ranked to <#{list_id_personal_channel[i]}>!")
+				else:
+					await send_chn_message(820840150044770335, f"<#{list_id_personal_channel[i]}> is (/almost) full!")
+					await rank_all_per_chan(specific_cat=list_id_personal_channel[i])
+				return;
+
+	if(chn_score <= list_score_thr_personal_channel[-1]): # execution pit 
+			if(chn_cat != list_personal_channel[-1]):
+				if(len(list_personal_channel[i].channels) < 47):
+					await chn.edit(category = list_personal_channel[-1])
+					await channel_finder.send(f"<#{chn_id}> ranked to <#{list_id_personal_channel[-1]}>!")
+				else:
+					await send_chn_message(820840150044770335, f"<#{list_id_personal_channel[-1]}> is (/almost) full!")
+					await rank_all_per_chan(specific_cat=list_id_personal_channel[-1])
+				return;
 
 
 
@@ -488,6 +515,15 @@ async def on_message(message):
 						await message.reply("Sorting personal channels done.")
 				else:
 					await message.reply("Already sorting personal channels.")
+			
+			# rank per chan
+			elif(msg_lower=='++rank_all_per_chan'):
+				if(not(sorting_channels)):
+					await rank_all_per_chan()
+					await message.reply("Done.")
+				else:
+					await message.reply("Can not do that right now. Currently sorting channels.")
+
 			# send chan message
 			elif(msg.startswith('++send_ch')):
 				if(auth_role in msg_auth_roles):
