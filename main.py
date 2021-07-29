@@ -73,7 +73,7 @@ async def on_ready():
 
 	list_personal_channel = [personal_channel, personal_channel_nobles, personal_channel_knights, personal_channel_citizens, personal_channel_new, personal_channel_exc]
 	list_id_personal_channel = [channel.id for channel in list_personal_channel]
-	list_score_thr_personal_channel = [10, 8, 6, 4, 1, 0]
+	list_score_thr_personal_channel = [10, 8, 6, 3, 1, 0]
 
 	channel_finder = client.get_channel(831345726394990593)
 	lit_chan = client.get_channel(825530904939069440)
@@ -224,7 +224,9 @@ async def rank_per_chan(chn_id):
 	chn_score = db['chnScore_'+str(chn_id)]
 	
 	if(chn_score >= list_score_thr_personal_channel[0]): # monarchs
-		if(chn_cat != list_personal_channel[0]):
+		if(chn_cat == list_personal_channel[0]):
+			return;
+		else:
 			if(len(list_personal_channel[0].channels) < 47):
 				await chn.edit(category = list_personal_channel[0])
 				await channel_finder.send(f"<#{chn_id}> ranked up to <#{list_id_personal_channel[0]}>!")
@@ -235,17 +237,21 @@ async def rank_per_chan(chn_id):
 
 	for i in list(range(1, len(list_personal_channel))):
 		if(chn_score >= list_score_thr_personal_channel[i]):
-			if(chn_cat != list_personal_channel[i]):
+			if(chn_cat == list_personal_channel[i]):
+				return;
+			else:
 				if(len(list_personal_channel[i].channels) < 47):
 					await chn.edit(category = list_personal_channel[i])
 					await channel_finder.send(f"<#{chn_id}> ranked to <#{list_id_personal_channel[i]}>!")
 				else:
 					await send_chn_message(820840150044770335, f"<#{list_id_personal_channel[i]}> is (/almost) full!")
 					await rank_all_per_chan(specific_cat=list_id_personal_channel[i])
-				return;
+			return;
 
 	if(chn_score <= list_score_thr_personal_channel[-1]): # execution pit 
-			if(chn_cat != list_personal_channel[-1]):
+			if(chn_cat == list_personal_channel[-1]):
+				return;
+			else:
 				if(len(list_personal_channel[i].channels) < 47):
 					await chn.edit(category = list_personal_channel[-1])
 					await channel_finder.send(f"<#{chn_id}> ranked to <#{list_id_personal_channel[-1]}>!")
@@ -314,7 +320,8 @@ async def sort_channels(value=2):
 			if(chn.category == personal_channel):
 				if(not(chn.id in [831345726394990593, 826062486766616617])):
 					await chn.edit(position=value)
-			if(chn.category == personal_channel_new):
+			# if(chn.category == personal_channel_new):
+			else:
 				await chn.edit(position=0)
 	
 	await client.get_channel(831345726394990593).edit(position=0)
@@ -459,7 +466,7 @@ async def on_message_delete(message):
 		dt_now = datetime.now()
 		dt_last_time_score_down_all_per_chan = datetime.datetime.fromisoformat(db["last_time_score_down_all_per_chan"])
 		dt_delta = dt_now - dt_last_time_score_down_all_per_chan
-		if(dt_delta.days > 2):
+		if(dt_delta.days > 1):
 			await score_down_all_per_chan
 	
 	# sort personal channels
