@@ -139,11 +139,50 @@ async def send_chn_message(chn_id, msg):
 
 
 async def score_up_per_chan(chn_id):
+	await client.wait_until_ready()
 	db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
 	await channel_finder.send(f"<#{chn_id}> scored up")
 	print("personal channel scored up")
 
 	await rank_per_chan(chn_id)
+
+
+async def score_down_per_chan(chn_id):
+	await client.wait_until_ready()
+	db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] - 1
+	await channel_finder.send(f"<#{chn_id}> scored down")
+	print("personal channel scored down")
+
+	if(db['chnScore_'+str(chn_id)] <= -5):
+		print("deleting personal channel")
+		await channel_finder.send(f"<#{chn_id}> is going to be deleted for having a score below threshold.")
+		chn = client.get_channel(int(chn_id))
+		await chn.delete(reason="Score below threshold.")
+		return;
+
+	await rank_per_chan(chn_id)
+
+
+
+async def score_down_all_per_chan():
+	await client.wait_until_ready()
+	dt_now = datetime.now()
+	db["last_time_score_down_all_per_chan"] = dt_now.isoformat()
+	
+	for cat in list_personal_channel:
+				for chn in cat.channels:
+					if(not(chn.id in [831345726394990593, 826062486766616617])):
+						try:
+							last_message = await chn.fetch_message(chn.last_message_id)
+							dt_delta = dt_now - last_message.created_at
+							if(dt_delta.days > 7): # if channel is inactive for more than a week
+								await score_down_per_chan(chn.id)
+						except:
+							await score_down_per_chan(chn.id)
+	
+	await rank_all_per_chan()
+	await sort_channels()
+							
 
 
 async def rank_per_chan(chn_id):
@@ -331,6 +370,23 @@ async def on_guild_channel_delete(channel):
 
 
 
+# deleted message
+@client.event
+async def on_message_delete(message):
+	time_now_omd = await get_time()
+	print("omd_" + str(time_now_omd))
+
+
+
+
+
+
+
+
+
+
+
+
 
 # new message
 @client.event
@@ -349,6 +405,7 @@ async def on_message(message):
 
 	msg = message.content
 	msg_len = len(msg)
+	msg_lower = msg.lower()
 	msg_auth = message.author
 	chn_id = message.channel.id
 	msg_attachments = message.attachments
@@ -394,9 +451,27 @@ async def on_message(message):
 		activity_summed = activity_general + activity_interests + activity_misc + activity_cool_ideas + activity_personal_channels
 
 	if(msg.startswith('++')): # commands
+		print('command')
 		if(chn_id==820840150044770335): #bot-settings
+			print('command in #bot-settings')
+			# test command
+			if(msg_lower=='++test'):
+				await message.reply("I can read your command.")
+				return;
+			
+			# score down all per chan
+			elif(msg_lower=='++score_down_all_per_chan'):
+				if(auth_role in msg_auth_roles):
+					if(sorting_channels):
+						await message.reply("Can not do that right now. Currently sorting channels.")
+						return;
+					else:
+						await score_down_all_per_chan()
+						await message.reply("Done.")
+						return;
+
 			# sort per chan
-			if(msg=='++sort_per_chan'):
+			elif(msg_lower=='++sort_per_chan'):
 				if(not(sorting_channels)):
 					if(await sort_channels()):
 						await message.reply("Sorting personal channels done.")
@@ -410,7 +485,7 @@ async def on_message(message):
 				return;
 
 		# send secret message
-		if(msg.lower().startswith('++help')):
+		if(msg_lower.startswith('++help')):
 			await message.reply(await help_msg(msg_auth))
 		
 		elif(msg.lower().startswith(('++secret_msg', '++secret_message'))):
