@@ -475,7 +475,7 @@ async def on_message_delete(message):
 	# score down all personal channels
 	if(2 > randint(1, 5)):
 		dt_now = datetime.now()
-		dt_last_time_score_down_all_per_chan = datetime.datetime.fromisoformat(db["last_time_score_down_all_per_chan"])
+		dt_last_time_score_down_all_per_chan = datetime.fromisoformat(db["last_time_score_down_all_per_chan"])
 		dt_delta = dt_now - dt_last_time_score_down_all_per_chan
 		if(dt_delta.days > 2):
 			await score_down_all_per_chan
@@ -483,7 +483,7 @@ async def on_message_delete(message):
 	# sort personal channels
 	elif(2 > randint(1, 5)):
 		dt_now = datetime.now()
-		dt_last_time_sort_per_chn = datetime.datetime.fromisoformat(db["last_time_sort_per_chn"])
+		dt_last_time_sort_per_chn = datetime.fromisoformat(db["last_time_sort_per_chn"])
 		dt_delta = dt_now - dt_last_time_sort_per_chn
 		if(dt_delta.days > 1):
 			await sort_channels()
@@ -640,7 +640,7 @@ async def on_message(message):
 							if(not(chn_id in (831345726394990593, 826062486766616617))):
 								await score_up_per_chan(chn_id)
 								if(3 >= randint(1, 5)):
-									if(time_now > last_time_prch_sorted + 30 * 60):
+									if(time_now > last_time_prch_sorted + 2 * 6 * 60):
 										await sort_channels()
 									probability_channel_rank = 0
 						else:
