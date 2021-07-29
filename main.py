@@ -466,7 +466,7 @@ async def on_message_delete(message):
 		dt_now = datetime.now()
 		dt_last_time_score_down_all_per_chan = datetime.datetime.fromisoformat(db["last_time_score_down_all_per_chan"])
 		dt_delta = dt_now - dt_last_time_score_down_all_per_chan
-		if(dt_delta.days > 1):
+		if(dt_delta.days > 2):
 			await score_down_all_per_chan
 	
 	# sort personal channels
