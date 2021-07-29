@@ -640,7 +640,7 @@ async def on_message(message):
 							if(not(chn_id in (831345726394990593, 826062486766616617))):
 								await score_up_per_chan(chn_id)
 								if(3 >= randint(1, 5)):
-									if(time_now > last_time_prch_sorted + 2 * 6 * 60):
+									if(time_now > last_time_prch_sorted + 2 * 60 * 60):
 										await sort_channels()
 									probability_channel_rank = 0
 						else:
