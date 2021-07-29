@@ -4,7 +4,7 @@ from discord.ext import commands
 from bs4 import BeautifulSoup
 import requests
 from replit import db
-import random
+# import random
 from random import randint
 import time
 from datetime import datetime
@@ -44,8 +44,8 @@ probability_channel_rank = 2
 activity_general = 0
 activity_interests = 0
 activity_misc = 0
-activity_cool_ideas = 0
 activity_personal_channels = 0
+activity_all = 0
 
 
 inv_link = r"https://discord.gg/WrQkFpy7sg"
@@ -144,6 +144,27 @@ async def send_chn_message(chn_id, msg):
 
 
 
+async def roll_a_dice():
+	x = randint(1, 20)
+	x_str = "Your number is **" + str(x) + "**. "
+	if x == 1:
+			x_str = x_str + "Oops, that sucks!"
+	elif x <= 5:
+			x_str = x_str + "That's pretty low!"
+	elif x <= 10:
+			x_str = x_str + "That's a-okay!"
+	elif x <= 15:
+			x_str = x_str + "Nice!"
+	elif x <= 19:
+			x_str = x_str + "Good job!"
+	elif x == 20:
+			x_str = x_str + "Fucking awesome!"
+	
+	return(x_str)
+
+
+
+
 async def score_up_per_chan(chn_id):
 	await client.wait_until_ready()
 	db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
@@ -165,6 +186,12 @@ async def score_down_per_chan(chn_id):
 		chn = client.get_channel(int(chn_id))
 		await chn.delete(reason="Score below threshold.")
 		return;
+	elif(db['chnScore_'+str(chn_id) <= 2]):
+		messages = await client.channel(chn_id).history(limit=10).flatten()
+		if(not(messages)):
+			await channel_finder.send(f"<#{chn_id}> is going to be deleted for having a score below threshold for channel with no messages.")
+			chn = client.get_channel(int(chn_id))
+			await chn.delete(reason="Score below threshold for channel with no messages.")
 
 	await rank_per_chan(chn_id)
 
@@ -228,8 +255,10 @@ async def rank_per_chan(chn_id):
 				return;
 
 
-
+ranking_channels = False
 async def rank_all_per_chan(specific_cat = None):
+	global ranking_channels
+	ranking_channels = True
 	await client.wait_until_ready()
 	if(specific_cat == None):
 		for cat in list_personal_channel:
@@ -256,6 +285,9 @@ async def give_equal_channel_values(value=2):
 
 sorting_channels = False
 async def sort_channels(value=2):
+	dt_now = datetime.now()
+	db['last_time_sort_per_chan'] = dt_now.isoformat()
+
 	global sorting_channels, last_time_prch_sorted
 	last_time_prch_sorted = await get_time()
 	await client.wait_until_ready()
@@ -291,6 +323,15 @@ async def sort_channels(value=2):
 	print("Done.")
 	sorting_channels = False
 	return(True)
+
+
+
+
+
+
+
+
+
 
 
 
@@ -397,6 +438,14 @@ async def on_guild_channel_delete(channel):
 
 
 
+
+
+
+
+
+
+
+
 # deleted message
 @client.event
 async def on_message_delete(message):
@@ -412,6 +461,14 @@ async def on_message_delete(message):
 		dt_delta = dt_now - dt_last_time_score_down_all_per_chan
 		if(dt_delta.days > 2):
 			await score_down_all_per_chan
+	
+	# sort personal channels
+	elif(2 > randint(1, 5)):
+		dt_now = datetime.now()
+		dt_last_time_sort_per_chn = datetime.datetime.fromisoformat(db["last_time_sort_per_chn"])
+		dt_delta = dt_now - dt_last_time_sort_per_chn
+		if(dt_delta.days > 1):
+			await sort_channels()
 		
 
 
@@ -435,7 +492,7 @@ async def on_message(message):
 	global TruthAsked
 	global sorting_channels
 	global probability_lit, probability_channel_rank
-	global activity_general, activity_interests, activity_misc, activity_cool_ideas, activity_personal_channels
+	global activity_general, activity_interests, activity_misc, activity_personal_channels, activity_all
 	
 	# if the sender is the bot herself
 	if (message.author == client.user):
@@ -473,6 +530,7 @@ async def on_message(message):
 		activity_misc = 0
 		activity_cool_ideas = 0
 		activity_personal_channels = 0
+		activity_all = 0
 	
 	if(not(str(message.channel.type)=='private')):
 		if(chn_cat_id==806413018056491028):
@@ -483,10 +541,10 @@ async def on_message(message):
 			activity_misc += 1
 		elif(chn_cat_id==810881959273431092):
 			activity_cool_ideas += 1
-		elif(chn_cat_id==819890501415075880):
+		elif(chn_cat_id in list_id_personal_channel):
 			activity_personal_channels += 1
 
-		activity_summed = activity_general + activity_interests + activity_misc + activity_cool_ideas + activity_personal_channels
+		activity_all += 1
 
 	if(msg.startswith('++')): # commands
 		print('command')
@@ -531,10 +589,11 @@ async def on_message(message):
 				await message.delete()
 				return;
 
-		# send secret message
+		# help command
 		if(msg_lower.startswith('++help')):
 			await message.reply(await help_msg(msg_auth))
 		
+		# send secret message
 		elif(msg.lower().startswith(('++secret_msg', '++secret_message'))):
 			if((re.match('^\+\+secret_(msg|message)\s*<?@?!?[\d]{17,19}>?\s*(\[.+])?\s*', msg)) or re.match('\+\+secret_(msg|message)\s*@?([\w\d\s]+#\d{4})\s*', msg)):
 				scrt_msg = await secret_message(msg, sender=msg_auth, attachments=msg_attachments)
@@ -556,10 +615,10 @@ async def on_message(message):
 		await msg_auth.send("Please use `++help` to see all the commands.")
 	
 	if(not(sorting_channels)):
-		if (time_now > last_time + 35):
+		if (time_now > last_time + 25):
 			if(chn_cat_id):
 				if(chn_cat_id in list_id_personal_channel): # personal channel
-						if(probability_channel_rank > randint(1, 4 + activity_personal_channels)):
+						if(probability_channel_rank > randint(1, 4 + activity_all)):
 							if(not(chn_id in (831345726394990593, 826062486766616617))):
 								await score_up_per_chan(chn_id)
 								if(3 >= randint(1, 5)):
@@ -569,7 +628,7 @@ async def on_message(message):
 						else:
 							probability_channel_rank += 1
 
-				elif (probability_lit > randint(1, 70 + activity_summed)):
+				elif (probability_lit > randint(1, 70 + activity_all)):
 					await post_4chan_lit(0)
 					probability_lit = 0
 				else:
@@ -683,6 +742,10 @@ async def on_message(message):
 	
 	if('flushed' in msg or 'flush me' in msg):
 		await message.add_reaction(emojis['flushed'])
+
+	elif(msg_lower == 'roll dice'):
+		dice = await roll_a_dice()
+		await message.reply(dice)
 
 	
 	last_time = time_now
