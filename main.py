@@ -276,6 +276,9 @@ ranking_channels = False
 async def rank_all_per_chan(specific_cat = None):
 	global ranking_channels
 	ranking_channels = True
+
+	message = await channel_finder.send("Ranking channels")
+
 	await client.wait_until_ready()
 	if(specific_cat == None):
 		for cat in list_personal_channel:
@@ -286,17 +289,19 @@ async def rank_all_per_chan(specific_cat = None):
 		for chn in specific_cat.channels:
 			if(not(chn.id in [831345726394990593, 826062486766616617])):
 				await rank_per_chan(chn.id)
+	
+	await message.edit(content=f"{message.content} (**Done**)")
 
 
 
-async def give_equal_channel_values(value=2):
-	for cs in db.prefix('chnScore_'):
-		if(cs.startswith('chnScore_')):
-			del db[cs]
-	print(db.prefix('c_'))
-	for m in db.prefix('c_'):
-		if(m.startswith('c_')):
-			db['chnScore_' + str(db[m])] = value
+# async def give_equal_channel_values(value=2):
+# 	for cs in db.prefix('chnScore_'):
+# 		if(cs.startswith('chnScore_')):
+# 			del db[cs]
+# 	print(db.prefix('c_'))
+# 	for m in db.prefix('c_'):
+# 		if(m.startswith('c_')):
+# 			db['chnScore_' + str(db[m])] = value
 
 
 
@@ -309,8 +314,8 @@ async def sort_channels(value=2):
 	last_time_prch_sorted = await get_time()
 	await client.wait_until_ready()
 	print("Soring Channels...")
-	await channel_finder.send("Sorting Channels.")
 	sorting_channels = True
+	message = await channel_finder.send("Sorting Channels.")
 
 	if(not(value)):
 		value = client.get_channel(826062486766616617).position + 1
@@ -340,6 +345,7 @@ async def sort_channels(value=2):
 
 	print("Done.")
 	sorting_channels = False
+	await message.edit(content=f"{message.content} (**Done**)")
 	return(True)
 
 
@@ -563,7 +569,11 @@ async def on_message(message):
 			activity_personal_channels += 1
 
 		activity_all += 1
-
+	# if message mentions @everyone
+	if(message.mention_everyone):
+		await message.delete()
+		return;
+	
 	if(msg.startswith('++')): # commands
 		print('command')
 		if(chn_id==820840150044770335): #bot-settings
@@ -663,9 +673,6 @@ async def on_message(message):
 		elif (LitMsg == "differentthread"):
 			await post_4chan_lit(randint(4, 7))
 	
-	# if message mentions @everyone
-	if("@everyone" in msg):
-		await message.delete()
 	
 	elif(message.channel.id == 831345726394990593): #channel-finder
 		if(re.match(r'all ?[\d]*', msg.lower())):
