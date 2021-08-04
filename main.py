@@ -344,7 +344,8 @@ async def sort_channels(value=2):
 				await chn.edit(position=0)
 	
 	await client.get_channel(831345726394990593).edit(position=0)
-	await client.get_channel(826062486766616617).edit(position=1)
+	await client.get_channel(826062486766616617).edit(position=0)
+	await update_per_chan_count()
 
 	print("Done.")
 	sorting_channels = False
@@ -352,6 +353,20 @@ async def sort_channels(value=2):
 	return(True)
 
 
+
+async def count_per_chan():
+	n = 0
+	for chan_id in list_id_personal_channel:
+		chan = client.get_channel(chan_id)
+		n += int(len(chan.channels))
+	
+	return(n)
+
+async def update_per_chan_count():
+	print("Updating per chan count")
+	count = await count_per_chan()
+	count_chan = client.get_channel(870997494170013748)
+	await count_chan.edit(name=f"{count} Channels")
 
 
 
@@ -413,6 +428,9 @@ async def create_per_chan(member):
 																		manage_permissions=True)
 	db["c_" + str(member.id)] = new_channel.id
 	db["chnScore_"+str(new_channel.id)] = 2
+
+	await update_per_chan_count()
+
 	return(True)
 
 
@@ -434,6 +452,7 @@ async def remove_member_data(member_id, member_name = None):
 	user_chan_id = db["c_" + str(member_id)]
 	user_chan = client.get_channel(user_chan_id)
 	await user_chan.delete()  #delete user's personal channel
+	await update_per_chan_count()
 	await delete_per_chan_info(member_id)
 	if("favmusic_" + str(member_id) in db.keys()):
 		del db["favmusic_" + str(member_id)]
@@ -588,6 +607,14 @@ async def on_message(message):
 			if(msg_lower=='++test'):
 				await message.reply("I can read your command.")
 				return;
+			
+			# get per chan number
+			elif(msg_lower=='++num_of_per_chan'):
+				await message.reply(str(await count_per_chan()))
+			
+			# update per chan count channel
+			elif(msg_lower=='++update_per_chan_count'):
+				await update_per_chan_count()
 			
 			# score down all per chan
 			elif(msg_lower=='++score_down_all_per_chan'):
