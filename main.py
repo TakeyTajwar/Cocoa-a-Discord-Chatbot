@@ -58,6 +58,7 @@ async def on_ready():
 	global list_score_thr_personal_channel
 	global channel_finder, lit_chan
 	global last_time_prch_sorted, list_id_personal_channel
+	global bScoreDownAllPerChan
 	
   
   
@@ -79,6 +80,8 @@ async def on_ready():
 	lit_chan = client.get_channel(825530904939069440)
 
 	last_time_prch_sorted = 0
+
+	bScoreDownAllPerChan = False
 
 	await startup_functions()
 
@@ -192,7 +195,7 @@ async def score_down_per_chan(chn_id):
 					await delete_per_chan_info(c_u)
 					break;
 		return;
-	elif(db['chnScore_'+str(chn_id) <= 2]):
+	elif(db['chnScore_'+str(chn_id)] <= 2):
 		messages = await client.channel(chn_id).history(limit=10).flatten()
 		if(not(messages)):
 			await channel_finder.send(f"<#{chn_id}> is going to be deleted for having a score below threshold for channel with no messages.")
@@ -473,23 +476,26 @@ async def on_guild_channel_delete(channel):
 # deleted message
 @client.event
 async def on_message_delete(message):
+	global bScoreDownAllPerChan
+
 	time_now_omd = await get_time()
 	print("omd_" + str(time_now_omd))
 
 
 
 	# score down all personal channels
-	if(2 > randint(1, 5)):
+	if(not(bScoreDownAllPerChan)):
 		dt_now = datetime.now()
 		dt_last_time_score_down_all_per_chan = datetime.fromisoformat(db["last_time_score_down_all_per_chan"])
 		dt_delta = dt_now - dt_last_time_score_down_all_per_chan
 		if(dt_delta.days > 2):
-			await score_down_all_per_chan
+			await score_down_all_per_chan()
+			bScoreDownAllPerChan = True
 	
 	# sort personal channels
 	elif(2 > randint(1, 5)):
 		dt_now = datetime.now()
-		dt_last_time_sort_per_chn = datetime.fromisoformat(db["last_time_sort_per_chn"])
+		dt_last_time_sort_per_chn = datetime.fromisoformat(db["last_time_sort_per_chan"])
 		dt_delta = dt_now - dt_last_time_sort_per_chn
 		if(dt_delta.days > 1):
 			await sort_channels()
