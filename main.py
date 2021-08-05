@@ -376,6 +376,17 @@ async def update_per_chan_count():
 
 
 
+async def reset_vars():
+	global bScoreDownAllPerChan
+
+	print("Resetting variables")
+
+	bScoreDownAllPerChan = False
+
+
+
+
+
 
 async def words_in_string(word_list, a_string):
 	for w in word_list:
@@ -580,6 +591,8 @@ async def on_message(message):
 		activity_cool_ideas = 0
 		activity_personal_channels = 0
 		activity_all = 0
+
+		await reset_vars()
 	
 	if(not(str(message.channel.type)=='private')):
 		if(chn_cat_id==806413018056491028):
