@@ -514,7 +514,7 @@ async def on_message_delete(message):
 
 
 	# score down all personal channels
-	if(not(bScoreDownAllPerChan)):
+	if(not(activity_all > 5)):
 		dt_now = datetime.now()
 		dt_last_time_score_down_all_per_chan = datetime.fromisoformat(db["last_time_score_down_all_per_chan"])
 		dt_delta = dt_now - dt_last_time_score_down_all_per_chan
