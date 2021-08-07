@@ -196,7 +196,7 @@ async def score_down_per_chan(chn_id):
 					break;
 		return;
 	elif(db['chnScore_'+str(chn_id)] <= 2):
-		messages = await client.channel(chn_id).history(limit=10).flatten()
+		messages = client.get_channel(chn_id).history(limit=10).flatten()
 		if(not(messages)):
 			await channel_finder.send(f"<#{chn_id}> is going to be deleted for having a score below threshold for channel with no messages.")
 			chn = client.get_channel(int(chn_id))
