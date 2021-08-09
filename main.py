@@ -371,17 +371,28 @@ async def update_per_chan_count():
 
 
 
+async def decide_all_channel_score_down():
+	dt_now = datetime.now()
+	dt_last_time_score_down_all_per_chan = datetime.fromisoformat(db["last_time_score_down_all_per_chan"])
+	dt_delta = dt_now - dt_last_time_score_down_all_per_chan
+	dt_delta_hours = dt_delta.seconds//3600
+	print(f"last time all channels scored down: {dt_delta_hours} hours ago")
+	if(dt_delta_hours > 24):
+		await score_down_all_per_chan()
+		return(True)
+	return(False)
+
+
 
 
 
 
 
 async def reset_vars():
-	global bScoreDownAllPerChan
 
 	print("Resetting variables")
 
-	bScoreDownAllPerChan = False
+	
 
 
 
@@ -514,16 +525,11 @@ async def on_message_delete(message):
 
 
 	# score down all personal channels
-	if(not(activity_all > 5)):
-		dt_now = datetime.now()
-		dt_last_time_score_down_all_per_chan = datetime.fromisoformat(db["last_time_score_down_all_per_chan"])
-		dt_delta = dt_now - dt_last_time_score_down_all_per_chan
-		if(dt_delta.days > 2):
-			await score_down_all_per_chan()
-			bScoreDownAllPerChan = True
+	if(not(activity_all>5)):
+		await decide_all_channel_score_down()
 	
 	# sort personal channels
-	elif(2 > randint(1, 5)):
+	if((activity_all < 2) and (2 > randint(1, 5))):
 		dt_now = datetime.now()
 		dt_last_time_sort_per_chn = datetime.fromisoformat(db["last_time_sort_per_chan"])
 		dt_delta = dt_now - dt_last_time_sort_per_chn
@@ -636,8 +642,10 @@ async def on_message(message):
 						await message.reply("Can not do that right now. Currently sorting channels.")
 						return;
 					else:
-						await score_down_all_per_chan()
-						await message.reply("Done.")
+						if(await decide_all_channel_score_down()):
+							await message.reply("Done.")
+						else:
+							await message.reply("Last time all channels were scored down less than threshold hours ago.")
 						return;
 
 			# sort per chan
