@@ -211,6 +211,28 @@ async def score_down_per_chan(chn_id):
 
 
 
+
+async def score_up_all_per_chan():
+	await client.wait_until_ready()
+	dt_now = datetime.now()
+	db["last_time_score_up_all_per_chan"] = dt_now.isoformat()
+	
+	for cat in list_personal_channel:
+				for chn in cat.channels:
+					if(not(chn.id in [831345726394990593, 826062486766616617])):
+						try:
+							last_message = await chn.fetch_message(chn.last_message_id)
+							dt_delta = dt_now - last_message.created_at
+							if(dt_delta.days < 1): # if channel was active today
+								await score_up_per_chan(chn.id)
+						except:
+							print("except")
+	
+	await sort_channels()
+
+
+
+
 async def score_down_all_per_chan():
 	await client.wait_until_ready()
 	dt_now = datetime.now()
@@ -227,7 +249,6 @@ async def score_down_all_per_chan():
 						except:
 							await score_down_per_chan(chn.id)
 	
-	# await rank_all_per_chan()
 	await sort_channels()
 							
 
@@ -381,6 +402,20 @@ async def decide_all_channel_score_down():
 		await score_down_all_per_chan()
 		return(True)
 	return(False)
+
+
+
+async def decide_all_channel_score_up():
+	dt_now = datetime.now()
+	dt_last_time_score_down_all_per_chan = datetime.fromisoformat(db["last_time_score_up_all_per_chan"])
+	dt_delta = dt_now - dt_last_time_score_down_all_per_chan
+	dt_delta_hours = dt_delta.seconds//3600
+	print(f"last time all channels scored up: {dt_delta_hours} hours ago")
+	if(dt_delta_hours > 24):
+		await score_down_all_per_chan()
+		return(True)
+	return(False)
+
 
 
 async def update_per_chan_rank_threshold(score_thresholds):
@@ -553,7 +588,11 @@ async def on_message_delete(message):
 
 	# score down all personal channels
 	if(not(activity_all>25)):
-		await decide_all_channel_score_down()
+		if(activity_all % 2 == 0 or activity_all % 3 == 0 or activity_all < 6):
+			await decide_all_channel_score_down()
+		else:
+			# await decide_all_channel_score_up()
+			await decide_all_channel_score_up()
 	
 	# sort personal channels
 	if((activity_all < 2) and (2 > randint(1, 5))):
