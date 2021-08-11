@@ -74,7 +74,7 @@ async def on_ready():
 
 	list_personal_channel = [personal_channel, personal_channel_nobles, personal_channel_knights, personal_channel_citizens, personal_channel_new, personal_channel_exc]
 	list_id_personal_channel = [channel.id for channel in list_personal_channel]
-	list_score_thr_personal_channel = [10, 8, 6, 3, 1, 0]
+	list_score_thr_personal_channel = db["per_chan_score_threshold"]
 
 	channel_finder = client.get_channel(831345726394990593)
 	lit_chan = client.get_channel(825530904939069440)
@@ -383,6 +383,33 @@ async def decide_all_channel_score_down():
 	return(False)
 
 
+async def update_per_chan_rank_threshold(score_thresholds):
+	global list_score_thr_personal_channel
+
+	if(not(len(score_thresholds) == len(list_id_personal_channel))):
+		print("Does not match personal channel ranks number.")
+		return(False);
+
+	for i in score_thresholds:
+		if(not(isinstance(i, int))):
+			return(False);
+
+
+	def ordertest(A):
+		for i in range(len(A) - 1):
+			if A[i] < A[i+1]:
+					print("Not all items are integers.")
+					return False
+		return True
+
+	if(ordertest(score_thresholds)):
+			db["per_chan_score_threshold"] = score_thresholds
+			list_score_thr_personal_channel = score_thresholds
+			print(f"Rank threolds updated: {score_thresholds}")
+			return(True);
+	
+	print("List is not in descending order or something else is wrong.")
+	return(False);
 
 
 
@@ -525,7 +552,7 @@ async def on_message_delete(message):
 
 
 	# score down all personal channels
-	if(not(activity_all>5)):
+	if(not(activity_all>25)):
 		await decide_all_channel_score_down()
 	
 	# sort personal channels
@@ -634,6 +661,16 @@ async def on_message(message):
 			# update per chan count channel
 			elif(msg_lower=='++update_per_chan_count'):
 				await update_per_chan_count()
+			
+			elif(msg_lower.startswith('++upd_rank_thr')):
+				rank_thr = msg_lower.replace(',', '').split()
+				rank_thr = rank_thr[1:]
+				rank_thr = [int(thr) for thr in rank_thr]
+				print(rank_thr)
+				if(await update_per_chan_rank_threshold(rank_thr)):
+					await message.reply("Done.")
+				else:
+					await message.reply("Something's wrong.")
 			
 			# score down all per chan
 			elif(msg_lower=='++score_down_all_per_chan'):
