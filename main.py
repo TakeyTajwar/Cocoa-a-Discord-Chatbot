@@ -413,7 +413,7 @@ async def decide_all_channel_score_up():
 	dt_delta_hours = dt_delta.total_seconds()//3600
 	print(f"last time all channels scored up: {dt_delta_hours} hours ago")
 	if(dt_delta_hours > 24):
-		await score_down_all_per_chan()
+		await score_up_all_per_chan()
 		return(True)
 	return(False)
 
@@ -589,7 +589,7 @@ async def on_message_delete(message):
 
 	# score down all personal channels
 	if(not(activity_all>25)):
-		if(activity_all % 2 == 0 or activity_all % 3 == 0 or activity_all < 6):
+		if(activity_all % 2 == 0 or activity_all % 3 == 0 or activity_all < 1):
 			await decide_all_channel_score_down()
 		else:
 			# await decide_all_channel_score_up()
