@@ -244,6 +244,7 @@ async def score_down_all_per_chan():
 						try:
 							last_message = await chn.fetch_message(chn.last_message_id)
 							dt_delta = dt_now - last_message.created_at
+							print(f"{chn} last message sent: {dt_delta}")
 							if(dt_delta.days > 7): # if channel is inactive for more than a week
 								await score_down_per_chan(chn.id)
 						except:
