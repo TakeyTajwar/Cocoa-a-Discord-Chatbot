@@ -396,7 +396,7 @@ async def decide_all_channel_score_down():
 	dt_now = datetime.now()
 	dt_last_time_score_down_all_per_chan = datetime.fromisoformat(db["last_time_score_down_all_per_chan"])
 	dt_delta = dt_now - dt_last_time_score_down_all_per_chan
-	dt_delta_hours = dt_delta.seconds//3600
+	dt_delta_hours = dt_delta.total_seconds()//3600
 	print(f"last time all channels scored down: {dt_delta_hours} hours ago")
 	if(dt_delta_hours > 24):
 		await score_down_all_per_chan()
@@ -409,7 +409,7 @@ async def decide_all_channel_score_up():
 	dt_now = datetime.now()
 	dt_last_time_score_down_all_per_chan = datetime.fromisoformat(db["last_time_score_up_all_per_chan"])
 	dt_delta = dt_now - dt_last_time_score_down_all_per_chan
-	dt_delta_hours = dt_delta.seconds//3600
+	dt_delta_hours = dt_delta.total_seconds()//3600
 	print(f"last time all channels scored up: {dt_delta_hours} hours ago")
 	if(dt_delta_hours > 24):
 		await score_down_all_per_chan()
