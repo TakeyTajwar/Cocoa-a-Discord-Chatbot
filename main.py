@@ -184,16 +184,16 @@ async def score_down_per_chan(chn_id):
 	print("personal channel scored down")
 
 	if(db['chnScore_'+str(chn_id)] <= -5):
-		print("deleting personal channel")
-		await channel_finder.send(f"<#{chn_id}> is going to be deleted for having a score below threshold.")
-		chn = client.get_channel(int(chn_id))
-		await chn.delete(reason="Score below threshold.")
-		await chn.delete(reason="Score below threshold for channel with no messages.")
+		print(f"deleting personal channel #{chn_id}")
 		for c_u in db.prefix('c_'): # delete per chan info
 			if(not(c_u.startswith('chnScore_'))):
 				if(db[c_u] == str(chn_id)):
 					await delete_per_chan_info(c_u)
 					break;
+		chn = client.get_channel(int(chn_id))
+		if(chn):
+			await channel_finder.send(f"<#{chn_id}> is going to be deleted for having a score below threshold.")
+			await chn.delete(reason="Score below threshold.")
 		return;
 	elif(db['chnScore_'+str(chn_id)] <= 2):
 		messages = client.get_channel(chn_id).history(limit=10).flatten()
