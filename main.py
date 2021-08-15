@@ -546,8 +546,15 @@ async def remove_member_data(member_id, member_name = None):
 
 async def delete_per_chan_info(member_id):
 	print("Deleting personal chan informations")
+
+	print("del chnScore_")
+	print(db['chnScore_' + str(db['c_'+str(member_id)])])
 	del db['chnScore_' + str(db['c_'+str(member_id)])]
+	
+	print("del c_")
 	del db["c_" + str(member_id)]
+	del db["c_" + str(member_id)]
+	print("Done")
 
 
 
@@ -812,22 +819,38 @@ async def on_message(message):
 				try:
 					for c_u in db.prefix('c_'):
 						if(not(c_u.startswith('chnScore_'))):
-							text_ = ""
-							text_ = text_ + (f":stars:`{str(client.get_user(int(c_u[2:])))[:-5]}`: <#{db[c_u]}>")
-							text_ = text_ + (f" ({db['chnScore_'+str(db['c_'+str(c_u[2:])])]})\n")
-							text.append(text_)
+							chn = client.get_channel(int(db[str(c_u)]))
+							if(chn):
+								text_ = ""
+								text_ = text_ + (f":stars:`{str(client.get_user(int(c_u[2:])))[:-5]}`: <#{db[c_u]}>")
+								text_ = text_ + (f" ({db['chnScore_'+str(db['c_'+str(c_u[2:])])]})\n")
+								text.append(text_)
+							else:
+								if('c_'+c_u in db.keys()):
+									await delete_per_chan_info(c_u)
 					text = sorted(text)
 					# text = ''.join(text)
 					for t_ in text:
 						await channel_finder.send(t_)
 				except Exception as e:
 					await channel_finder.send(e)
+
 		elif(re.match(r'top ?[\d]+', msg.lower())):
 			all_chn_score = {}
 			range_ = int(re.search(r'\d+', msg.lower()).group(0))
 			
 			for chn_ in db.prefix('chnScore_'):
-				all_chn_score[chn_] = db[str(chn_)]
+				chn_id = int(chn_.split('_')[-1])
+				print(chn_id)
+				chn = client.get_channel(chn_id)
+				if(chn):
+					all_chn_score[chn_] = db[str(chn_)]
+				else:
+					for c_u in db.prefix('c_'): # delete per chan info
+						if(not(c_u.startswith('chnScore_'))):
+							if(db[c_u] == str(chn_id)):
+								await delete_per_chan_info(c_u)
+								break;
 			
 			all_chn_score = {k: v for k, v in sorted(all_chn_score.items(), key=lambda item: item[1], reverse=True)}
 			all_chn_score = {A:N for (A,N) in [x for x in all_chn_score.items()][:range_]}
