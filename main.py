@@ -369,7 +369,7 @@ async def sort_channels(value=2):
 				await chn.edit(position=0)
 	
 	await client.get_channel(831345726394990593).edit(position=0)
-	await client.get_channel(826062486766616617).edit(position=0)
+	await client.get_channel(826062486766616617).edit(position=1)
 	await update_per_chan_count()
 
 	print("Done.")
