@@ -223,9 +223,11 @@ async def score_up_all_per_chan():
 						try:
 							last_message = await chn.fetch_message(chn.last_message_id)
 							dt_delta = dt_now - last_message.created_at
+							print(f"{chn}: {dt_delta}: {last_message.content}")
 							if(dt_delta.days < 1): # if channel was active today
 								await score_up_per_chan(chn.id)
-						except:
+						except Exception as e:
+							print(e)
 							print("except")
 	
 	await sort_channels()
@@ -244,10 +246,11 @@ async def score_down_all_per_chan():
 						try:
 							last_message = await chn.fetch_message(chn.last_message_id)
 							dt_delta = dt_now - last_message.created_at
-							print(f"{chn} last message sent: {dt_delta}")
+							print(f"{chn}: {dt_delta}: {last_message.content}")
 							if(dt_delta.days > 7): # if channel is inactive for more than a week
 								await score_down_per_chan(chn.id)
-						except:
+						except Exception as e:
+							print(e)
 							await score_down_per_chan(chn.id)
 	
 	await sort_channels()
@@ -595,11 +598,10 @@ async def on_message_delete(message):
 
 
 	# score down all personal channels
-	if(not(activity_all>25)):
-		if(activity_all % 2 == 0 or activity_all % 3 == 0 or activity_all < 1):
+	if(not(activity_all>5)):
+		if(activity_all % 2 == 0):
 			await decide_all_channel_score_down()
 		else:
-			# await decide_all_channel_score_up()
 			await decide_all_channel_score_up()
 	
 	# sort personal channels
