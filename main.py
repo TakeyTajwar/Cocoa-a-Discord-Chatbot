@@ -603,7 +603,7 @@ async def on_message_delete(message):
 
 
 	# score down all personal channels
-	if(not(activity_all>5)):
+	if(not(activity_all>15)):
 		if(activity_all % 2 == 0):
 			await decide_all_channel_score_down()
 		else:
@@ -818,6 +818,12 @@ async def on_message(message):
 		elif (LitMsg == "differentthread"):
 			await post_4chan_lit(randint(4, 7))
 	
+
+	elif(message.channel.id == 883651265563877416):
+		if(not(message.author.bot)):
+			if(not(msg_lower == '!d bump')):
+				await message.delete()
+
 	
 	elif(message.channel.id == 831345726394990593): #channel-finder
 		if(re.match(r'all ?[\d]*', msg.lower())):
