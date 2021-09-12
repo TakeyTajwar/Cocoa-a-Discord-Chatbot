@@ -4,12 +4,14 @@ from discord.ext import commands
 from bs4 import BeautifulSoup
 import requests
 from replit import db
-# import random
 from random import randint
 import time
 from datetime import datetime
 import asyncio
 import re
+import spacy
+import en_core_web_sm
+from profanity_filter import ProfanityFilter
 
 from keep_alive import keep_alive
 
@@ -59,6 +61,9 @@ async def on_ready():
 	global channel_finder, lit_chan
 	global last_time_prch_sorted, list_id_personal_channel
 	global bScoreDownAllPerChan
+
+
+	global pf
 	
   
   
@@ -82,6 +87,11 @@ async def on_ready():
 	last_time_prch_sorted = 0
 
 	bScoreDownAllPerChan = False
+
+
+	nlp = spacy.load('en_core_web_sm')
+	pf = ProfanityFilter(nlps={'en': nlp})
+
 
 	await startup_functions()
 
@@ -652,12 +662,14 @@ async def on_message(message):
 	chn_id = message.channel.id
 	msg_attachments = message.attachments
 	if(not(str(message.channel.type)=='private')):
+		msg_inserver = True
 		msg_auth_roles = msg_auth.roles
 		if(message.channel.category):
 			chn_cat_id = message.channel.category.id
 		else:
 			chn_cat_id = None
 	else:
+		msg_inserver = False
 		msg_auth_roles = chn_cat_id = None
 		guild = client.get_guild(806413017440845845)
 		if(not(msg_auth in guild.members)):
@@ -698,6 +710,12 @@ async def on_message(message):
 	if(message.mention_everyone):
 		await message.delete()
 		return;
+	
+	# # if message is unclean
+	# if(msg_inserver):
+	# 	if(pf.is_profane("That's bullshit!")):
+	# 		print(f"Profane Message. Profane word: {pf.censor_word(msg)}")
+	# 		await message.delete()
 	
 	if(msg.startswith('++')): # commands
 		print('command')
