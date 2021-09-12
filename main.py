@@ -9,9 +9,6 @@ import time
 from datetime import datetime
 import asyncio
 import re
-import spacy
-import en_core_web_sm
-from profanity_filter import ProfanityFilter
 
 from keep_alive import keep_alive
 
@@ -63,7 +60,6 @@ async def on_ready():
 	global bScoreDownAllPerChan
 
 
-	global pf
 	
   
   
@@ -88,9 +84,6 @@ async def on_ready():
 
 	bScoreDownAllPerChan = False
 
-
-	nlp = spacy.load('en_core_web_sm')
-	pf = ProfanityFilter(nlps={'en': nlp})
 
 
 	await startup_functions()
@@ -710,12 +703,6 @@ async def on_message(message):
 	if(message.mention_everyone):
 		await message.delete()
 		return;
-	
-	# # if message is unclean
-	# if(msg_inserver):
-	# 	if(pf.is_profane("That's bullshit!")):
-	# 		print(f"Profane Message. Profane word: {pf.censor_word(msg)}")
-	# 		await message.delete()
 	
 	if(msg.startswith('++')): # commands
 		print('command')
