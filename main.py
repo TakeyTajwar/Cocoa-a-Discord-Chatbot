@@ -515,9 +515,20 @@ async def create_per_chan(member):
 	# create a new text channel
 	new_channel = await guild.create_text_channel(
 			f"{str(member).split('#')[0]}s-channel", category=personal_channel_new)
-	await new_channel.send(
-			f"Welcome to your new personal channel, <@{member.id}>.\nThis is your personal Channel and you have your full control over it.\nYou can:\n`- Rename this Channel`\n`- Change the Channel's Description`\n`- Delete any message in this Channel`\n`- Pin any message in this Channel`\n`- Manage permissions for any member or role`\nHave Fun!"
-	)
+	
+	embed = discord.Embed(title="Welcome to Your New Personal Channel!", description=f"Welcome to your new personal channel, <@{member.id}>. Your Personal Channel in our server. You have your full control over your personal channel (but do not violate discord's TOS or server rules).", color=0x88ff4b)
+	embed.add_field(name='Rename this Channel ', value="This is your personal channel so of course you can rename it! If you're on Desktop then click on the settings icon (next to your channel's name in channel list) and if you're on a mobile device, hold the channel to go the edit-channel page of your channel. Your channel deserves a proper title.", inline=False)
+	embed.add_field(name='Change the Channel\'s Description', value="You can change the description of your channel in the same page you can change the name of your channel.", inline=False)
+	embed.add_field(name='Delete any message', value="Are there messages in your channel that you don't want it to have? Clean your channel up.", inline=False)
+	embed.add_field(name='Pin any message', value="You can pin any message in your channel. On desktop, hold shift and click the pin icon or click the three-dots icon and pin. On Mobile, hold the message and then click on the pin option.", inline=False)
+	embed.add_field(name='Manage permissions', value="You can manage permissions for members for your channel.", inline=False)
+	embed.add_field(name='Have fun!', value="Have fun!", inline=False)
+
+	await new_channel.send(embed=embed)
+
+	# await new_channel.send(
+	# 		f"Welcome to your new personal channel, <@{member.id}>.\nThis is your personal Channel and you have your full control over it.\nYou can:\n`- Rename this Channel`\n`- Change the Channel's Description`\n`- Delete any message in this Channel`\n`- Pin any message in this Channel`\n`- Manage permissions for any member or role`\nHave Fun!"
+	# )
 	await new_channel.set_permissions(member,
 																		manage_channels=True,
 																		manage_messages=True,
