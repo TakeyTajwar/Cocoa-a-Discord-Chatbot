@@ -531,12 +531,12 @@ async def create_per_chan(member):
 	embed.add_field(name='Delete any message', value="Are there messages in your channel that you don't want it to have? Clean your channel up.", inline=False)
 	embed.add_field(name='Pin any message', value="You can pin any message in your channel. On desktop, hold shift and click the pin icon or click the three-dots icon and pin. On Mobile, hold the message and then click on the pin option.", inline=False)
 	embed.add_field(name='Manage permissions', value="You can manage permissions for members for your channel.", inline=False)
-	embed.add_field(name='Translation', value="¿Quiere una traducción de este mensaje? Actualmente estamos trabajando en ello.\nХотите перевод этого сообщения? В настоящее время мы над этим работаем.\n您想翻译此消息吗？ 我们目前正在努力。", inline=False)
+	embed.add_field(name='Translation', value="¿Quiere una traducción de este mensaje? Escriba `++Es`.\nХотите перевод этого сообщения? Введите `++Ru`.", inline=False)
 	embed.set_footer(text="Have Fun!")
 
 	await new_channel.send(embed=embed)
 	
-	await new_channel.send(f"Welcome, <@{member.id}>. We are immersely glad that you joined.\nSi necesita ayuda para traducir el mensaje anterior, pregúntele a alguien.\nЕсли вам нужна помощь в переводе сообщения выше, спросите кого-нибудь.\n如果您需要帮助翻译上述消息，请询问某人。")
+	await new_channel.send(f"**Welcome, <@{member.id}>, to your new Personal Channel!**")
 
 	# await new_channel.send(
 	# 		f"Welcome to your new personal channel, <@{member.id}>.\nThis is your personal Channel and you have your full control over it.\nYou can:\n`- Rename this Channel`\n`- Change the Channel's Description`\n`- Delete any message in this Channel`\n`- Pin any message in this Channel`\n`- Manage permissions for any member or role`\nHave Fun!"
