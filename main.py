@@ -52,7 +52,7 @@ inv_link = r"https://discord.gg/WrQkFpy7sg"
 
 @client.event
 async def on_ready():
-	global personal_channel, personal_channel_nobles, personal_channel_knights, personal_channel_citizens, personal_channel_new, personal_channel_exc
+	global personal_channel_asc, personal_channel, personal_channel_nobles, personal_channel_knights, personal_channel_citizens, personal_channel_new, personal_channel_exc
 	global list_personal_channel
 	global list_score_thr_personal_channel
 	global channel_finder, lit_chan
@@ -65,7 +65,7 @@ async def on_ready():
   
 	print(f"We have logged in as {client.user}")
 	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name='Layers of Fear'))
-	    
+	personal_channel_asc = client.get_channel(889099337941004310) # ascended
 	personal_channel = client.get_channel(819890501415075880) # monarch
 	personal_channel_nobles = client.get_channel(870210864047849513) # nobles 
 	personal_channel_knights = client.get_channel(870210934520553543) #knights
@@ -73,7 +73,7 @@ async def on_ready():
 	personal_channel_new = client.get_channel(868910910297755648) # settlers
 	personal_channel_exc = client.get_channel(869599701647917106) # execution
 
-	list_personal_channel = [personal_channel, personal_channel_nobles, personal_channel_knights, personal_channel_citizens, personal_channel_new, personal_channel_exc]
+	list_personal_channel = [personal_channel_asc, personal_channel, personal_channel_nobles, personal_channel_knights, personal_channel_citizens, personal_channel_new, personal_channel_exc]
 	list_id_personal_channel = [channel.id for channel in list_personal_channel]
 	list_score_thr_personal_channel = db["per_chan_score_threshold"]
 
@@ -92,7 +92,6 @@ async def on_ready():
 async def startup_functions():
 	await setup_guild()
 	# await print_db()
-
 
 	await	 update_utc_chn_name()	
 
