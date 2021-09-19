@@ -513,7 +513,7 @@ async def on_member_join(member):
 		if(new_channel):
 			embed=discord.Embed()
 			embed.add_field(name=f"{new_channel}", value=f"<@{member.id}>, your new channel is <#{new_channel.id}>.", inline=True)
-			embed.add_field(name="{new_channel}", value="<@{member.id}>, tu nuevo canal es <#{new_channel.id}>.", inline=True)
+			embed.add_field(name=f"{new_channel}", value=f"<@{member.id}>, tu nuevo canal es <#{new_channel.id}>.", inline=True)
 			await gen_channel.send(embed=embed)
 
 
