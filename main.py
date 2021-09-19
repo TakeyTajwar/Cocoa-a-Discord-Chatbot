@@ -500,11 +500,21 @@ async def whos_mentioned(msg):
 async def on_member_join(member):
 	if (not (member.bot)):
 		print(f"{member} joined")
-		channel = client.get_channel(806413018056491029)
-		await channel.send(
-		    f"Welcome to the server, {str(member).split('#')[0]}! We are glad you joined. I will create a new personal channel just for you."
-		)
-		await create_per_chan(member)
+		gen_channel = client.get_channel(806413018056491029)
+		# await channel.send(
+		#     f"Welcome to the server, {str(member).split('#')[0]}! We are glad you joined. I will create a new personal channel just for you."
+		# )
+		embed=discord.Embed(title="A New Member Joined Our Server!")
+		embed.add_field(name="English", value=f"Welcome <@{member.id}>. We are glad that you joined. Please look around and meet new people. I will create a personal channel for you.", inline=True)
+		embed.add_field(name="Español", value=f"Bienvenido <@{member.id}>. Nos alegra que se haya unido. Por favor, mire a su alrededor y conozca gente nueva. Crearé un canal personal para ti.", inline=True)
+		await gen_channel.send(embed=embed)
+
+		new_channel = await create_per_chan(member)
+		if(new_channel):
+			embed=discord.Embed()
+			embed.add_field(name=f"{new_channel}", value=f"<@{member.id}>, your new channel is <#{new_channel.id}>.", inline=True)
+			embed.add_field(name="{new_channel}", value="<@{member.id}>, tu nuevo canal es <#{new_channel.id}>.", inline=True)
+			await gen_channel.send(embed=embed)
 
 
 
@@ -512,14 +522,6 @@ async def create_per_chan(member):
 	if(not(member in guild.members)):
 		return("Inv_UserNotMember")
 	# create a new text channel
-	translation_field_ = [
-		"",
-		"",
-		"",
-	]
-	translation_field = ""
-	for t in translation_field:
-		translation_field = translation_field + t + '\n'
 
 	new_channel = await guild.create_text_channel(
 			f"{str(member).split('#')[0]}s-channel", category=personal_channel_new)
@@ -548,7 +550,7 @@ async def create_per_chan(member):
 
 	await update_per_chan_count()
 
-	return(True)
+	return(new_channel)
 
 
 
