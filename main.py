@@ -885,16 +885,16 @@ async def on_message(message):
 				chn = client.get_channel(chn_id)
 				if(chn):
 					all_chn_score[chn_] = db[str(chn_)]
-				else:
-					for c_u in db.prefix('c_'): # delete per chan info
-						if(not(c_u.startswith('chnScore_'))):
-							if(db[c_u] == str(chn_id)):
-								await delete_per_chan_info(c_u)
-								break;
+				# else:
+				# 	for c_u in db.prefix('c_'): # delete per chan info
+				# 		if(not(c_u.startswith('chnScore_'))):
+				# 			if(db[c_u] == str(chn_id)):
+				# 				await delete_per_chan_info(c_u)
+				# 				break;
 			
 			all_chn_score = {k: v for k, v in sorted(all_chn_score.items(), key=lambda item: item[1], reverse=True)}
 			all_chn_score = {A:N for (A,N) in [x for x in all_chn_score.items()][:range_]}
-			# print(all_chn_score)
+			print(all_chn_score)
 			r_ = 1
 			await channel_finder.send("="*20)
 			for k, v in all_chn_score.items():
