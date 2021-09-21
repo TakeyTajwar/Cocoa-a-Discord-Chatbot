@@ -935,6 +935,13 @@ async def on_message(message):
 			await message.delete()
 			print("deleting message;")
 			return;
+	
+	elif(chn_id == 889885962778345554): # pastry conversation
+		embed_pastry = await pastry_embed(msg_auth, msg)
+		await message.delete()
+		pastry_chn = client.get_channel(889885962778345554)
+		await client.wait_until_ready()
+		await pastry_chn.send(embed=embed_pastry)
 
 	if("<@823554116356669521>" in msg or "<@!823554116356669521>" in msg):
 		print("DDL is mentioned;")
@@ -1025,6 +1032,82 @@ async def secret_message(msg, sender=False, attachments=False):
 		print(e)
 		return(str(e))
 	return(True)
+
+
+
+
+
+async def pastry_message(msg):
+	unwanted_chars = ['.', ',', '!', '?', "'", '"', '¡', '¿', '$', '%', '*', '#', '_', '~', '`']
+	for c in unwanted_chars:
+		msg = msg.replace(c, '')
+
+	if(len(msg) > 32):
+		return(None)
+	msg = msg.lower()
+
+	pastry_dict = {
+		'a': "sugar",
+		'e': "egg",
+		'i': "cream",
+		'o': "syrup",
+		'u': "butter",
+		'á': "honey",
+		'é': "milk",
+		'í': "crème",
+		'ó': "éclair",
+		'ú': "cheese",
+		'ü': "buttercream",
+		'ñ': "chocolate",
+		'b': "cake",
+		'c': "cookie",
+		'd': "melon",
+		'f': "cherry",
+		'g': "wine",
+		'h': "apple",
+		'j': "cupcake",
+		'k': "yogurt",
+		'l': "oreo",
+		'm': "biscuit",
+		'n': "crêpe",
+		'p': "pudding",
+		'q': "cracker",
+		'r': "vanilla",
+		's': "milkshake",
+		't': "pie",
+		'v': "truffle",
+		'w': "churro",
+		'x': "muffin",
+		'y': "coffee",
+		'z': "sweetroll"
+	}
+
+	pastry_msg = ""
+	for c in msg:
+		if(c==' '):
+			pastry_msg = pastry_msg + " :cake: "
+		elif(c in pastry_dict.keys()):
+			pastry_msg = pastry_msg + ' __' + pastry_dict[c] + '__'
+	if(len(pastry_msg)>0):
+		return(pastry_msg)
+	return(None)
+
+
+
+async def pastry_embed(member, msg):
+	# pastry colour "f8deb8"
+	pastry_msg = await pastry_message(msg)
+	memberName = member.name
+	memberIcon = str(member.avatar_url)
+
+	if(pastry_msg):
+		embed=discord.Embed(title="\u200b", description=f"{pastry_msg}", color=0xf8deb8)
+	else:
+		embed=discord.Embed(title="\u200b", description=":broccoli: broccoli :broccoli:", color=0x76904b)
+	embed.set_author(name=memberName, icon_url=memberIcon)
+	embed.set_footer(text="\u200b")
+
+	return(embed)
 
 
 
