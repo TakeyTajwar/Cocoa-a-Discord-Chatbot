@@ -896,18 +896,24 @@ async def on_message(message):
 			all_chn_score = {A:N for (A,N) in [x for x in all_chn_score.items()][:range_]}
 			print(all_chn_score)
 			r_ = 1
-			await channel_finder.send("="*20)
+			# await channel_finder.send("="*20)
+			embed_top = discord.Embed(title=f"Top {range_} Channels", color=0xffffff)
 			for k, v in all_chn_score.items():
 				# if(not(r>r_)):
 				# 	break
 				try:
 					await client.wait_until_ready()
 					# await channel_finder.send(f"<#{all_chn_score[r_]}>: {all_chn_score.keys()[r_]}")
-					await channel_finder.send(f"**{r_}** <#{(k.split('_')[-1])}>: `{v}`")
-					r_ += 1
+					# await channel_finder.send(f"**{r_}** <#{(k.split('_')[-1])}>: `{v}`")
+					chn_name = client.get_channel(int((k.split('_')[-1]))).name
+					embed_top.add_field(name=f"{r_}. {chn_name}", value=f"Channel: <#{(k.split('_')[-1])}>\nScore: {v}", inline=False)
 				except Exception as e:
-					await channel_finder.send(e)
-			await channel_finder.send("="*20)
+					# await channel_finder.send(e)
+					embed_top.add_field(name="Error", value=f"{e}", inline=False)
+
+				r_ += 1
+			# await channel_finder.send("="*20)
+			await channel_finder.send(embed=embed_top)
 
 			
 		elif(msg.startswith('<@') and msg.endswith('>')):
