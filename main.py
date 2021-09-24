@@ -64,16 +64,24 @@ async def on_ready():
   
   
 	print(f"We have logged in as {client.user}")
-	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name='Layers of Fear'))
+	await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='over you all'))
+
+	personal_channel_div = client.get_channel(890877563604455444) # divine
 	personal_channel_asc = client.get_channel(889099337941004310) # ascended
 	personal_channel = client.get_channel(819890501415075880) # monarch
 	personal_channel_nobles = client.get_channel(870210864047849513) # nobles 
-	personal_channel_knights = client.get_channel(870210934520553543) #knights
-	personal_channel_citizens = client.get_channel(870211119774584903) # citizens
+	personal_channel_knights = client.get_channel(870210934520553543) # high knights
+	personal_channel_v_3 = client.get_channel(890886436528730132) # valley astro owls
+	personal_channel_v_2 = client.get_channel(890883182507986945) # valley octa red
+	personal_channel_v_1 = client.get_channel(890885890547785749) # valley alpha crocs
+	personal_channel_citizens_3 = client.get_channel(890881856717856789) # richfountain citizens
+	personal_channel_citizens_2 = client.get_channel(890881000589099028) # highmount citizens
+	personal_channel_citizens = client.get_channel(870211119774584903) # grasstown citizens
+	personal_channel_nov_res = client.get_channel(890871719995256852) # novice residents
 	personal_channel_new = client.get_channel(868910910297755648) # settlers
 	personal_channel_exc = client.get_channel(869599701647917106) # execution
 
-	list_personal_channel = [personal_channel_asc, personal_channel, personal_channel_nobles, personal_channel_knights, personal_channel_citizens, personal_channel_new, personal_channel_exc]
+	list_personal_channel = [personal_channel_div, personal_channel_asc, personal_channel, personal_channel_nobles, personal_channel_knights, personal_channel_v_3, personal_channel_v_2, personal_channel_v_1, personal_channel_citizens_3, personal_channel_citizens_2, personal_channel_citizens, personal_channel_nov_res, personal_channel_new, personal_channel_exc]
 	list_id_personal_channel = [channel.id for channel in list_personal_channel]
 	list_score_thr_personal_channel = db["per_chan_score_threshold"]
 
@@ -546,7 +554,7 @@ async def create_per_chan(member):
 																		manage_messages=True,
 																		manage_permissions=True)
 	db["c_" + str(member.id)] = new_channel.id
-	db["chnScore_"+str(new_channel.id)] = 2
+	db["chnScore_"+str(new_channel.id)] = 0
 
 	await update_per_chan_count()
 
