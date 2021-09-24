@@ -875,7 +875,7 @@ async def on_message(message):
 				except Exception as e:
 					await channel_finder.send(e)
 
-		elif(re.match(r'top ?[\d]+', msg.lower())):
+		elif(re.match(r'top ?[\d]+ ?(channel|chan)?s?', msg.lower(), re.IGNORECASE)):
 			all_chn_score = {}
 			range_ = int(re.search(r'\d+', msg.lower()).group(0))
 			
@@ -906,7 +906,8 @@ async def on_message(message):
 					# await channel_finder.send(f"<#{all_chn_score[r_]}>: {all_chn_score.keys()[r_]}")
 					# await channel_finder.send(f"**{r_}** <#{(k.split('_')[-1])}>: `{v}`")
 					chn_name = client.get_channel(int((k.split('_')[-1]))).name
-					embed_top.add_field(name=f"{r_}. {chn_name}", value=f"Channel: <#{(k.split('_')[-1])}>\nScore: {v}", inline=False)
+					chn_rank = client.get_channel(int((k.split('_')[-1]))).category
+					embed_top.add_field(name=f"**{r_}. {chn_name}**", value=f"**Channel:** <#{(k.split('_')[-1])}>\n**Rank:** {chn_rank}\n**Score:** {v}", inline=False)
 				except Exception as e:
 					# await channel_finder.send(e)
 					embed_top.add_field(name="Error", value=f"{e}", inline=False)
