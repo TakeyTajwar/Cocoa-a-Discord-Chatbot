@@ -761,6 +761,11 @@ async def on_message(message):
 				else:
 					await message.reply("Something's wrong.")
 			
+			elif(msg_lower == '++rank_thr'):
+				for i in range(len(list_score_thr_personal_channel)):
+					await message.channel.send(f"<#{list_id_personal_channel[i]}>: {list_score_thr_personal_channel[i]}")
+
+			
 			# score down all per chan
 			elif(msg_lower=='++score_down_all_per_chan'):
 				if(auth_role in msg_auth_roles):
