@@ -598,10 +598,13 @@ async def remove_member_data(member_id, member_name = None):
 		del db["favmusic_" + str(member_id)]
 	
 	key_list = [f"favmusic_{member_id}"]
+
 	for key in key_list:
 		if(key in db.keys()):
 			print(f"del {key}")
 			del db[key]
+		else:
+			print(f"{key} not in db")
 
 
 
@@ -609,10 +612,13 @@ async def delete_per_chan_info(member_id):
 	print("Deleting personal chan informations")
 
 	key_list = ['chnScore_' + str(db['c_'+str(member_id)]), f"c_{member_id}", f"chn_last_scored_up_auth_{member_id}"]
+	
 	for key in key_list:
 		if(key in db.keys()):
 			print(f"del {key}")
 			del db[key]
+		else:
+			print(f"{key} not in db")
 
 	print("done")
 
