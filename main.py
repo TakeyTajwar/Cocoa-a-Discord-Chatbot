@@ -178,10 +178,23 @@ async def roll_a_dice():
 
 
 
-async def score_up_per_chan(chn_id):
+async def score_up_per_chan(chn_id, msg_auth_id):
+	s = 1
+
+	if("last_scored_up_chn_id" in db.keys()):
+		if(chn_id != db["last_scored_up_chn_id"]):
+			s += randint(0, 1)
+	db["last_scored_up_chn_id"] = chn_id
+
+	if(f"chn_last_scored_up_auth_{msg_auth_id}" in db.keys()):
+		if(msg_auth_id != db[f"chn_last_scored_up_auth_{msg_auth_id}"]):
+			s += randint(0, 1)
+
 	await client.wait_until_ready()
-	db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + 1
-	await channel_finder.send(f"<#{chn_id}> scored up")
+	
+	db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + s
+	by_point = str(s) + "points" if s>1 else "point"
+	await channel_finder.send(f"<#{chn_id}> scored up by {by_point}.")
 	print("personal channel scored up")
 
 	await rank_per_chan(chn_id)
@@ -235,7 +248,7 @@ async def score_up_all_per_chan():
 							dt_delta = dt_now - last_message.created_at
 							print(f"{chn}: {dt_delta}: {last_message.content}")
 							if(dt_delta.days < 1): # if channel was active today
-								await score_up_per_chan(chn.id)
+								await score_up_per_chan(chn.id, last_message.author)
 						except Exception as e:
 							print(e)
 							print("except")
@@ -583,19 +596,25 @@ async def remove_member_data(member_id, member_name = None):
 	await delete_per_chan_info(member_id)
 	if("favmusic_" + str(member_id) in db.keys()):
 		del db["favmusic_" + str(member_id)]
+	
+	key_list = [f"favmusic_{member_id}"]
+	for key in key_list:
+		if(key in db.keys()):
+			print(f"del {key}")
+			del db[key]
 
 
 
 async def delete_per_chan_info(member_id):
 	print("Deleting personal chan informations")
 
-	print("del chnScore_")
-	print(db['chnScore_' + str(db['c_'+str(member_id)])])
-	del db['chnScore_' + str(db['c_'+str(member_id)])]
-	
-	print("del c_")
-	del db["c_" + str(member_id)]
-	print("Done")
+	key_list = ['chnScore_' + str(db['c_'+str(member_id)]), f"c_{member_id}", f"chn_last_scored_up_auth_{member_id}"]
+	for key in key_list:
+		if(key in db.keys()):
+			print(f"del {key}")
+			del db[key]
+
+	print("done")
 
 
 
@@ -833,7 +852,7 @@ async def on_message(message):
 				if(chn_cat_id in list_id_personal_channel): # personal channel
 						if(probability_channel_rank > randint(1, 4 + activity_all)):
 							if(not(chn_id in (831345726394990593, 826062486766616617))):
-								await score_up_per_chan(chn_id)
+								await score_up_per_chan(chn_id, msg_auth.id)
 								if(3 >= randint(1, 5)):
 									if(time_now > last_time_prch_sorted + 2 * 60 * 60):
 										await sort_channels()
