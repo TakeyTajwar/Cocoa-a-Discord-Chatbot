@@ -192,7 +192,7 @@ async def score_up_per_chan(chn_id, msg_auth_id):
 	await client.wait_until_ready()
 	
 	db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + s
-	by_point = str(s) + "points" if s>1 else "point"
+	by_point = str(s) + " points" if s>1 else " point"
 	await channel_finder.send(f"<#{chn_id}> scored up by {by_point}.")
 	print("personal channel scored up")
 
