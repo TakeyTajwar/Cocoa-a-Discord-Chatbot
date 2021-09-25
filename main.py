@@ -181,9 +181,8 @@ async def roll_a_dice():
 async def score_up_per_chan(chn_id, msg_auth_id):
 	s = 1
 
-	if("last_scored_up_chn_id" in db.keys()):
-		if(chn_id != db["last_scored_up_chn_id"]):
-			s += randint(0, 1)
+	if(chn_id != db["last_scored_up_chn_id"]):
+		s += randint(0, 1)
 	db["last_scored_up_chn_id"] = chn_id
 
 	if(f"chn_last_scored_up_auth_{msg_auth_id}" in db.keys()):
@@ -612,7 +611,7 @@ async def delete_per_chan_info(member_id):
 	print("Deleting personal chan informations")
 
 	key_list = ['chnScore_' + str(db['c_'+str(member_id)]), f"c_{member_id}", f"chn_last_scored_up_auth_{member_id}"]
-	
+
 	for key in key_list:
 		if(key in db.keys()):
 			print(f"del {key}")
@@ -856,13 +855,12 @@ async def on_message(message):
 		if (time_now > last_time + 25):
 			if(chn_cat_id):
 				if(chn_cat_id in list_id_personal_channel): # personal channel
-						if(probability_channel_rank > randint(1, 4 + activity_all)):
-							if(not(chn_id in (831345726394990593, 826062486766616617))):
-								await score_up_per_chan(chn_id, msg_auth.id)
-								if(3 >= randint(1, 5)):
-									if(time_now > last_time_prch_sorted + 2 * 60 * 60):
-										await sort_channels()
-									probability_channel_rank = 0
+						if(probability_channel_rank > randint(1 + 0 if chn_id == db["last_scored_up_chn_id"] else 1, 4 + activity_all)):
+							await score_up_per_chan(chn_id, msg_auth.id)
+							if(3 >= randint(1, 5)):
+								if(time_now > last_time_prch_sorted + 2 * 60 * 60):
+									await sort_channels()
+								probability_channel_rank = 0
 						else:
 							probability_channel_rank += 1
 
