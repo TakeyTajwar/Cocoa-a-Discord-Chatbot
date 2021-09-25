@@ -181,28 +181,32 @@ async def roll_a_dice():
 async def score_up_per_chan(chn_id, msg_auth_id):
 	s = 1
 
-	if(chn_id != db["last_scored_up_chn_id"]):
+	if(chn_id != db["last_scored_up_chn_id"]): # if it isn't the last channel scored up
 		s += randint(0, 1)
 	db["last_scored_up_chn_id"] = chn_id
 
 	if(f"chn_last_scored_up_auth_{msg_auth_id}" in db.keys()):
-		if(msg_auth_id != db[f"chn_last_scored_up_auth_{msg_auth_id}"]):
-			s += randint(0, 1)
+		if(msg_auth_id != db[f"chn_last_scored_up_auth_{msg_auth_id}"]): # if this channel wasn't last scored up by this user
+			s += randint(0, 3)
+	db[f"chn_last_scored_up_auth_{msg_auth_id}"] = msg_auth_id
 
 	await client.wait_until_ready()
 	
 	db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] + s
-	by_point = str(s) + " points" if s>1 else " point"
+	by_point = " points" if s>1 else " point"
+	by_point = str(s) + by_point
 	await channel_finder.send(f"<#{chn_id}> scored up by {by_point}.")
 	print("personal channel scored up")
 
 	await rank_per_chan(chn_id)
 
 
-async def score_down_per_chan(chn_id):
+async def score_down_per_chan(chn_id, s=1):
 	await client.wait_until_ready()
 	db['chnScore_'+str(chn_id)] = db['chnScore_'+str(chn_id)] - 1
-	await channel_finder.send(f"<#{chn_id}> scored down")
+	by_point = " points" if s>1 else " point"
+	by_point = str(s) + by_point
+	await channel_finder.send(f"<#{chn_id}> scored down by {by_point}.")
 	print("personal channel scored down")
 
 	if(db['chnScore_'+str(chn_id)] <= -5):
@@ -269,7 +273,13 @@ async def score_down_all_per_chan():
 							last_message = await chn.fetch_message(chn.last_message_id)
 							dt_delta = dt_now - last_message.created_at
 							if((dt_delta.days > 7*4)): # if channel is inactive for more than 4 weeks
-								await score_down_per_chan(chn.id)
+								if(dt_delta.days > 7*6): # if channel is inactive for more than 6 weeks
+									if(dt_delta.days > 7*8): # if channel is inactive for more than 8 weeks
+										await score_down_per_chan(chn.id, 3)
+									else:
+										await score_down_per_chan(chn.id, 2)
+								else:
+									await score_down_per_chan(chn.id, 1)
 							else:
 								dt_delta_created = dt_now - chn.created_at
 								if(dt_delta_created.days < 7*2 and dt_delta.days > 7): # if channel is younger than 2 weeks and is inactive for 1 week
@@ -395,8 +405,7 @@ async def sort_channels(value=2):
 			else:
 				await chn.edit(position=0)
 	
-	await client.get_channel(831345726394990593).edit(position=0)
-	await client.get_channel(826062486766616617).edit(position=1)
+	
 	await update_per_chan_count()
 
 	print("Done.")
