@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 import asyncio
 import re
+from PIL import ImageColor
 
 from keep_alive import keep_alive
 
@@ -93,6 +94,9 @@ async def on_ready():
 	bScoreDownAllPerChan = False
 
 
+	# -------------------------------
+	
+	# -------------------------------
 
 	await startup_functions()
 
@@ -1153,7 +1157,20 @@ async def pastry_embed(member, msg):
 	memberIcon = str(member.avatar_url)
 
 	if(pastry_msg):
-		embed=discord.Embed(title="\u200b", description=f"{pastry_msg}", color=0xf8deb8)
+		color = '#f8deb8'
+		value = color.lstrip('#')
+		lv = len(value)
+		color = list(int(value[i:i+lv//3], 16) for i in range(0, lv, lv//3))
+		member_disc = member.discriminator
+		print(member_disc)
+		g_ = int(int(member_disc[0:1]) / 3)
+		len_member_nick = len(member.nick) if member.nick else 10
+		b_ = int(member_disc[2:3]) + len_member_nick - 16
+		color[1] += int(g_/5)*5 - 20
+		color[2] += int(b_/5)*5 - 20
+		color = '%02x%02x%02x' % tuple(color)
+		color = int(color, 16)
+		embed=discord.Embed(title="\u200b", description=f"{pastry_msg}", color=color)
 	else:
 		embed=discord.Embed(title="\u200b", description=":broccoli: broccoli :broccoli:", color=0x76904b)
 	embed.set_author(name=memberName, icon_url=memberIcon)
