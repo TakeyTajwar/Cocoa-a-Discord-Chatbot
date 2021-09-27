@@ -553,13 +553,30 @@ async def create_per_chan(member):
 	new_channel = await guild.create_text_channel(
 			f"{str(member).split('#')[0]}s-channel", category=personal_channel_new)
 	
-	embed = discord.Embed(title="Welcome to Your New Personal Channel!", description=f"**(En)**Welcome to your new personal channel, <@{member.id}>. Your Personal Channel in our server. You have your full control over your personal channel (but do not violate [discord's TOS](https://discord.com/terms) or server rules).\n**(ES)**Bienvenido a su nuevo canal personal, <@{member.id}>. Tu canal personal en nuestro servidor. Tienes el control total sobre tu canal personal (pero no infrinjas los [TOS de Discord](https://discord.com/terms) o las reglas del servidor).", color=0x88ff4b)
-	embed.add_field(name='Rename this Channel ', value="**(En)**This is your personal channel so of course you can rename it! If you're on Desktop then click on the settings icon (next to your channel's name in channel list) and if you're on a mobile device, hold the channel to go the edit-channel page of your channel. Your channel deserves a proper title.\n**(Es)**Este es tu canal personal, así que, por supuesto, ¡puedes cambiarle el nombre! Si está en el escritorio, haga clic en el ícono de configuración (junto al nombre de su canal en la lista de canales) y si está en un dispositivo móvil, mantenga presionado el canal para ir a la página de edición del canal de su canal. Tu canal merece un título adecuado.", inline=False)
-	embed.add_field(name='Change the Channel\'s Description', value="**(En)**You can change the description of your channel in the same page you can change the name of your channel.\n**(Es)**Puedes cambiar la descripción de tu canal en la misma página puedes cambiar el nombre de tu canal.", inline=False)
-	embed.add_field(name='Delete any message', value="**(En)**Are there messages in your channel that you don't want it to have? Clean your channel up.\n**(Es)**¿Hay mensajes en tu canal que no quieres que tenga? Limpia tu canal.", inline=False)
-	embed.add_field(name='Pin any message', value="**(En)**You can pin any message in your channel. On desktop, hold shift and click the pin icon or click the three-dots icon and pin. On Mobile, hold the message and then click on the pin option.\n**(Es)**Puedes anclar cualquier mensaje en tu canal. En el escritorio, mantenga presionada la tecla Mayús y haga clic en el ícono de alfiler o haga clic en el ícono de tres puntos y el alfiler. En el dispositivo móvil, mantenga presionado el mensaje y luego haga clic en la opción de pin.", inline=False)
-	embed.add_field(name='Manage permissions', value="**(En)**You can manage permissions for members for your channel.\n**(Es)**Puede administrar los permisos de los miembros de su canal.", inline=False)
-	embed.set_footer(text="Have Fun! ¡Divertirse!")
+	embed = discord.Embed(title="Welcome to Your New Personal Channel!", description=f"**Welcome to your new personal channel, <@{member.id}>.** Your Personal Channel in our server. You have your full control over your personal channel (but do not violate [discord's TOS](https://discord.com/terms) or server rules).\n\n**Bienvenido a su nuevo canal personal, <@{member.id}>.** Tu canal personal en nuestro servidor. Tienes el control total sobre tu canal personal (pero no infrinjas los [TOS de Discord](https://discord.com/terms) o las reglas del servidor).\n\n", color=0x88ff4b)
+
+	embed.add_field(name='Rename this Channel', value="This is your personal channel so of course you can rename it! If you're on Desktop then click on the settings icon (next to your channel's name in channel list) and if you're on a mobile device, hold the channel to go the edit-channel page of your channel. Your channel deserves a proper title.", inline=True)
+	embed.add_field(name='Cambiar el nombre de este canal', value="Este es tu canal personal, así que, por supuesto, ¡puedes cambiarle el nombre! Si está en el escritorio, haga clic en el ícono de configuración (junto al nombre de su canal en la lista de canales) y si está en un dispositivo móvil, mantenga presionado el canal para ir a la página de edición del canal de su canal. Tu canal merece un título adecuado.", inline=True)
+	embed.add_field(name="\u200b", value="\u200b", inline=False)
+
+	embed.add_field(name='Change the Channel Description', value="You can change the description of your channel in the same page you can change the name of your channel.", inline=True)
+	embed.add_field(name="Cambiar la descripción del canal", value="Puedes cambiar la descripción de tu canal en la misma página puedes cambiar el nombre de tu canal.", inline=True)
+	embed.add_field(name="\u200b", value="\u200b", inline=False)
+
+	embed.add_field(name='Delete any message', value="Are there messages in your channel that you don't want it to have? Clean your channel up.", inline=True)
+	embed.add_field(name="Eliminar cualquier mensaje", value="¿Hay mensajes en tu canal que no quieres que tenga? Limpia tu canal.", inline=True)
+	embed.add_field(name="\u200b", value="\u200b", inline=False)
+
+	embed.add_field(name='Pin any message', value="You can pin any message in your channel. On desktop, hold shift and click the pin icon or click the three-dots icon and pin. On Mobile, hold the message and then click on the pin option.", inline=True)
+	embed.add_field(name="Fijar cualquier mensaje", value="Puedes anclar cualquier mensaje en tu canal. En el escritorio, mantenga presionada la tecla Mayús y haga clic en el ícono de alfiler o haga clic en el ícono de tres puntos y el alfiler. En el dispositivo móvil, mantenga presionado el mensaje y luego haga clic en la opción de pin.", inline=True)
+	embed.add_field(name="\u200b", value="\u200b", inline=False)
+
+	embed.add_field(name='Manage permissions', value="You can manage permissions for members for your channel.", inline=True)
+	embed.add_field(name="Administrar permisos", value="Puede administrar los permisos de los miembros de su canal.", inline=True)
+	embed.add_field(name="\u200b", value="\u200b", inline=False)
+
+	embed.set_footer(text="Have Fun! ¡Diviértase!")
+
 
 	await new_channel.send(embed=embed)
 	
@@ -627,6 +644,7 @@ async def delete_per_chan_info(member_id):
 			print(f"{key} not in db")
 
 	print("done")
+	await update_per_chan_count()
 
 
 
@@ -635,8 +653,9 @@ async def delete_per_chan_info(member_id):
 async def on_guild_channel_delete(channel):
 	print("A channel has been deleted")
 	channel_id = channel.id
-	if channel.category == personal_channel:
+	if (channel.category in list_personal_channel):
 		print("Personal channel deleted.")
+		await channel_finder.send(f"{channel} has been deleted.")
 		for c_u in db.prefix('c_'):
 			if(not(c_u.startswith('chnScore_'))):
 				if(db[c_u] == str(channel_id)):
@@ -975,7 +994,7 @@ async def on_message(message):
 				elif(create_per_chan_return == "Inv_UserNotMember"):
 					await channel_finder.send("The user is not a member of our server. Can not create a channel for someone who is not a member of our server.")
 				else:
-					await channel_finder.send("Failed to create a new channel for the user.")
+					await channel_finder.send(f"<#{create_per_chan_return.id}>")
 		else:
 			print("NO USE: " + msg)
 			await message.delete()
