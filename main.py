@@ -9,7 +9,6 @@ import time
 from datetime import datetime
 import asyncio
 import re
-from PIL import ImageColor
 
 from keep_alive import keep_alive
 
@@ -249,16 +248,15 @@ async def score_up_all_per_chan():
 	
 	for cat in list_personal_channel:
 				for chn in cat.channels:
-					if(not(chn.id in [831345726394990593, 826062486766616617])):
-						try:
-							last_message = await chn.fetch_message(chn.last_message_id)
-							dt_delta = dt_now - last_message.created_at
-							print(f"{chn}: {dt_delta}: {last_message.content}")
-							if(dt_delta.days < 1): # if channel was active today
-								await score_up_per_chan(chn.id, last_message.author)
-						except Exception as e:
-							print(e)
-							print("except")
+					try:
+						last_message = await chn.fetch_message(chn.last_message_id)
+						dt_delta = dt_now - last_message.created_at
+						print(f"{chn}: {dt_delta}: {last_message.content}")
+						if(dt_delta.days < 1): # if channel was active today
+							await score_up_per_chan(chn.id, last_message.author)
+					except Exception as e:
+						print(e)
+						print("except")
 	
 	await sort_channels()
 
@@ -272,27 +270,26 @@ async def score_down_all_per_chan():
 	
 	for cat in list_personal_channel:
 				for chn in cat.channels:
-					if(not(chn.id in [831345726394990593, 826062486766616617])):
-						try:
-							last_message = await chn.fetch_message(chn.last_message_id)
-							dt_delta = dt_now - last_message.created_at
-							if((dt_delta.days > 7*4)): # if channel is inactive for more than 4 weeks
-								if(dt_delta.days > 7*6): # if channel is inactive for more than 6 weeks
-									if(dt_delta.days > 7*8): # if channel is inactive for more than 8 weeks
-										await score_down_per_chan(chn.id, 3)
-									else:
-										await score_down_per_chan(chn.id, 2)
+					try:
+						last_message = await chn.fetch_message(chn.last_message_id)
+						dt_delta = dt_now - last_message.created_at
+						if((dt_delta.days > 7*4)): # if channel is inactive for more than 4 weeks
+							if(dt_delta.days > 7*6): # if channel is inactive for more than 6 weeks
+								if(dt_delta.days > 7*8): # if channel is inactive for more than 8 weeks
+									await score_down_per_chan(chn.id, 3)
 								else:
-									await score_down_per_chan(chn.id, 1)
+									await score_down_per_chan(chn.id, 2)
 							else:
-								dt_delta_created = dt_now - chn.created_at
-								if(dt_delta_created.days < 7*2 and dt_delta.days > 7): # if channel is younger than 2 weeks and is inactive for 1 week
-									await score_down_per_chan(chn.id)
-							print(f"{chn}: {last_message.created_at}: {last_message.content}")
+								await score_down_per_chan(chn.id, 1)
+						else:
+							dt_delta_created = dt_now - chn.created_at
+							if(dt_delta_created.days < 7*2 and dt_delta.days > 7): # if channel is younger than 2 weeks and is inactive for 1 week
+								await score_down_per_chan(chn.id)
+						print(f"{chn}: {last_message.created_at}: {last_message.content}")
 
-						except Exception as e:
-							print(e)
-							await score_down_per_chan(chn.id)
+					except Exception as e:
+						print(e)
+						await score_down_per_chan(chn.id)
 	
 	await sort_channels()
 							
@@ -352,12 +349,10 @@ async def rank_all_per_chan(specific_cat = None):
 	if(specific_cat == None):
 		for cat in list_personal_channel:
 				for chn in cat.channels:
-					if(not(chn.id in [831345726394990593, 826062486766616617])):
-						await rank_per_chan(chn.id)
+					await rank_per_chan(chn.id)
 	else:
 		for chn in specific_cat.channels:
-			if(not(chn.id in [831345726394990593, 826062486766616617])):
-				await rank_per_chan(chn.id)
+			await rank_per_chan(chn.id)
 	
 	await message.edit(content=f"{message.content} (**Done**)")
 
@@ -403,8 +398,7 @@ async def sort_channels(value=2):
 		chn = client.get_channel(id)
 		if(chn):
 			if(chn.category == personal_channel):
-				if(not(chn.id in [831345726394990593, 826062486766616617])):
-					await chn.edit(position=value)
+				await chn.edit(position=value)
 			# if(chn.category == personal_channel_new):
 			else:
 				await chn.edit(position=0)
