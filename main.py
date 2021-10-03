@@ -488,6 +488,66 @@ async def update_per_chan_rank_threshold(score_thresholds):
 
 
 
+
+
+async def use_conf(chn_id, message):
+	conf = f"conf_{chn_id}"
+	if(not(conf in db.keys())):
+		return()
+	
+	conf_file = db[conf]
+	conf_lines = conf_file.splitlines()
+	
+	for line in conf_lines:
+		if(re.match(r'^\$everyone: \{message: (\w), attachments: (\w)\}$', line)):
+			m_everyone = re.search(r'^\$everyone: \{message: (\w), attachments: (\w)\}$', line)
+			if(m_everyone.group(1) == 'n'):
+				await message.delete()
+				return()
+			elif(m_everyone.group(2) == 'n'):
+				if(not(len(message.attachments) == 0)):
+					await message.delete()
+					return()
+
+
+default_conf = "++conf\n$everyone: {message: y, attachments: y}"
+async def configure_channel(s, chn_id):
+	conf = f"conf_{chn_id}"
+	if(s in ["++configure", "++permissions", "++conf"]):
+		if(conf in db.keys()):
+			return(f"```py\n{db[conf]}```")
+		else:
+			db[conf] = default_conf
+			return(f"Default conf.```py\n{db[conf]}```")
+	
+	else:
+		new_conf = "++conf # y for yes, n for no"
+		s_lines = s.splitlines()
+		if(len(s_lines)>1):
+			s_lines.pop(0)
+			for line in s_lines:
+				if(line.startswith('$everyone: {')):
+					if(re.match(r'^\$everyone: \{message: [yn], attachments: [yn]\}$', line)):
+						new_conf = new_conf + '\n' + line
+			if(len(new_conf.splitlines())>1):
+				db[conf] = new_conf
+				return(f"Conf updated.\n```py\n{db[conf]}```")
+			
+
+	return(ValueError("Invalid Conf"))
+
+
+async def delete_conf(chn_id):
+	conf = f"conf_{chn_id}"
+	if(conf in db.keys()):
+		del db[conf]
+		return("Conf file for this channel has been deleted.")
+	else:
+		return(ValueError("This channel does not have a conf file."))
+
+
+
+
 async def reset_vars():
 
 	print("Resetting variables")
@@ -889,14 +949,35 @@ async def on_message(message):
 								probability_channel_rank = 0
 						else:
 							probability_channel_rank += 1
+						
 
 				elif (probability_lit > randint(1, 70 + activity_all)):
 					await post_4chan_lit(0)
 					probability_lit = 0
 				else:
 					probability_lit += 1
+
+
+	if(chn_cat_id in list_id_personal_channel): # personal channel
+		if(db[f"c_{msg_auth.id}"] == chn_id): # by the owner of the per chan
+
+			if(msg_lower.startswith('++')): # command
+		
+				if(msg_lower.startswith('++conf') or msg_lower.startswith('++permissions')): # configure file
+					print("configure")
+					print(db[f"c_{msg_auth.id}"], chn_id)
+					conf_return = await configure_channel(msg_lower, chn_id)
+					await message.channel.send(conf_return)
+				
+				if(msg_lower == '++delete_conf'):
+					await message.channel.send(await delete_conf(chn_id))
+		
+		else:
+			await use_conf(chn_id, message)
+
+
 			
-	if(message.channel.id == 825530904939069440): #literature
+	elif(message.channel.id == 825530904939069440): #literature
 		LitMsg = message.content.lower()
 		for c in ["'", " ", ".", "please", ","]:
 			LitMsg = LitMsg.replace(c, "")
